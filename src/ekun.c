@@ -11,17 +11,8 @@
 EkGstate ek_state;
 
 
-void interpret(char * source){
-    DEBUG_PRINT("in Interpreter");
-    init_lexer(source);
-    DEBUG_PRINT("lexer current: %s", lex->current);
-    DEBUG_PRINT("lexer start: %s", lex->start);
-    DEBUG_PRINT("lexer line_no: %d", lex->line_no);
-
-    //doing nothing for now just tokenizing
-    if(ek_state.options & OPT_TOKENIZE){
-        DEBUG_PRINT("Tokenize option set");
-        Token tok;
+void tokenize(char * source){
+    Token tok;
         int start_pos;
 
         while(1){
@@ -40,11 +31,26 @@ void interpret(char * source){
                     printf( "\t'%.*s'\n", tok.length, tok.start);
             }
         }
+
+}
+
+
+void interpret(char * source){
+    DEBUG_PRINT("in Interpreter");
+    init_lexer(source);
+
+    //doing nothing for now just tokenizing
+    if(IS_SET_OPT(OPT_TOKENIZE)){
+        DEBUG_PRINT("Tokenize option set");
+        tokenize(source);
     }
-    else if(( ek_state.options & OPT_DISASSEMBLE ) && 
-            !(ek_state.options & OPT_TOKENIZE)){
-            DEBUG_PRINT("Dump option set")
+    else if(IS_SET_OPT(OPT_DISASSEMBLE) && 
+            !IS_SET_OPT(OPT_TOKENIZE)){
+            DEBUG_PRINT("Dump option set");
             printf("Dumping...\n");
+    }
+    else {
+        yyparse();
     }
 }
 
@@ -82,8 +88,8 @@ static void usage(){
 }
 
 
-static void set_option(int argc, char ** argv){
-    DEBUG_PRINT("In set_option");
+static void process_option(int argc, char ** argv){
+    DEBUG_PRINT("In process_option");
     //skip program name
     argc--;
     argv++; 
@@ -94,14 +100,11 @@ static void set_option(int argc, char ** argv){
         word = *argv;
 
         if (*word == '-'){
-            if (strcmp(word, "-t") == 0 ||
-                    strcmp(word, "--tokenize") == 0)
-                ek_state.options |= OPT_TOKENIZE;
-            else if (strcmp(word, "-d") == 0 || 
-                    strcmp(word, "--dump") == 0)
-                ek_state.options |= OPT_DISASSEMBLE;
-            else if ( strcmp(word, "-h") == 0 ||
-                    strcmp(word, "--help") == 0){
+            if (CMP_EQUAL(word, "-t") || CMP_EQUAL(word, "--tokenize"))
+                SET_OPT(OPT_TOKENIZE);
+            else if (CMP_EQUAL(word, "-d") || CMP_EQUAL(word, "--dump"))
+                SET_OPT(OPT_DISASSEMBLE);
+            else if ( CMP_EQUAL(word, "-h") || CMP_EQUAL(word, "--help")){
                 usage();
                 exit(1);
             }
@@ -115,6 +118,7 @@ static void set_option(int argc, char ** argv){
         }
         else if(set_file == 0){
             ek_state.filename = word;
+            set_file = 1;
         }
     }
 }
@@ -136,7 +140,7 @@ void ek_sig_handler(int sig){
     switch(sig){
         case SIGFPE:
             signal(SIGFPE, ek_sig_handler);
-            ek_error(ek_state.line_no, "Floating point exception");
+            EK_ERROR(ek_state.line_no, "Floating point exception");
     }
 }
 
@@ -151,7 +155,7 @@ static void repl(){
             exit(1);
         }
         interpret(line);
-        ek_free(line);
+        EK_FREE(line);
     }
 }
 
@@ -162,7 +166,7 @@ static void run(void){
     if(ek_state.filename){
         char *source = read_file(ek_state.filename);
         interpret(source);
-        ek_free(source);
+        EK_FREE(source);
     }
     else {
         repl();
@@ -173,11 +177,11 @@ static void run(void){
 int main(int argc, char ** argv){
     init_state();
     ek_state.progname = *argv; 
-    set_option(argc, argv);
+    process_option(argc, argv);
     run();
 
     if(ek_state.has_error){
-        ek_error(ek_state.line_no, "Unknown Error");
+        EK_ERROR(ek_state.line_no, "Unknown Error");
         exit(64);
     }
     exit(0);
