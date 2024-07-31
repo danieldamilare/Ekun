@@ -1,20 +1,22 @@
 #ifndef __EKUN_H
 #define __EKUN_H
+#include <stdio.h>
+typedef enum{
+    OPT_TOKENIZE = 1 << 0,
+    OPT_DISASSEMBLE = 1 << 1,
+} Opt;
 
-#define EkFree(ptr) (ptr) && free((ptr)) && (ptr) = NULL
-
-
-#define Ekerror(line, message, ...) fprintf(stderr, "%s:%d: " message "\n", \
-        Global_state.filename, Global_state.line_no, ##__VA_ARGS__), Global_state.error_state = 1
 
 typedef struct EkGlobalState{
+    char * progname;
     char * filename;
+    FILE * file_handler;
     int line_no;
-    int error_state;
-    int options;
+    int has_error;
+    unsigned options;
 } EkGstate;
 
-extern EkGstate Global_state;
+extern EkGstate ek_state;
 
 #define CMP_EQUAL(S, val) strcmp((s), (val)) == 0
 
