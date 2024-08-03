@@ -1,10 +1,15 @@
+/* Lexical analyzer for the Yoruba programming language
+ * Copyright (C) 2024 Joseph Daniel 
+ *
+ */
+
 #include <stdio.h>
 #include "eklex.h"
 #include "ekun.h"
 #include <stdlib.h>
 #include "dbg.h"
 #include "ctype.h"
-#include "ekparser.h"
+#include "y.tab.h"
 
 /* global variable for the lexer */
 static Lexer lex;

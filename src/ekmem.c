@@ -1,3 +1,7 @@
+/* Memory Interface for the Yoruba programming language
+ * Copyright (C) 2024 Joseph Daniel
+ */
+
 #include "ekmem.h"
 #include <stdlib.h>
 #include <stdio.h>
