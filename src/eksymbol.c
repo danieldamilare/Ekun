@@ -1,7 +1,5 @@
 /* 
  * Symbol table implementation for the Yoruba language
- * Uses a chained hash-table for now will later update it to use an
- * open address hash table
  * Copyright (C) 2024 Joseph Daniel
  */
 #include <stdio.h>
