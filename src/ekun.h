@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+
+//Supported data type
 
 typedef enum{
     OPT_TOKENIZE = 1 << 0,
@@ -13,7 +16,6 @@ typedef enum{
 #define EK_ERROR(line, message, ...) do { \
     fprintf(stderr, "%s:%d: " message "\n", \
         (ek_state.filename? ek_state.filename : "stdin"), line, ##__VA_ARGS__); \
-    ek_state.has_error = 1; \
 } while (0)
 
 /* Global state structure */
@@ -22,13 +24,14 @@ typedef struct EkGlobalState{
     char * filename;
     FILE * file_handler;
     int line_no;
+    bool interactive;
     int has_error;
     unsigned options;
 } EkGstate;
 
 extern EkGstate ek_state;
 void tokenize(char * source);
-#define CMP_EQUAL(s, val) strcmp((s), (val)) == 0
+#define CMP_EQUAL(s, val) (strcmp((s), (val)) == 0)
 #define SET_OPT(opt) ek_state.options |= (opt)
 #define IS_SET_OPT(opt) (ek_state.options & (opt))
 

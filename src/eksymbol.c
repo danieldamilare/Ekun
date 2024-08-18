@@ -28,6 +28,7 @@ Symbol * new_table(void){
     Symbol * new = ek_malloc(sizeof(*new));
     new->size = 0;
     new->capacity = 0;
+    new->bucket = NULL;
     return new;
 }
 
@@ -65,7 +66,7 @@ void adjust_table(Symbol * table){
                 ptr = ptr_next;
             }
         }
-        free(table->bucket);
+        EK_FREE(table->bucket);
         table->capacity = capacity;
         table->bucket = bucket;
 }

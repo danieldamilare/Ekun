@@ -4,8 +4,11 @@
 #include <signal.h>
 #include "dbg.h"
 #include "eklex.h"
-#include "ekparser.h"
+#include "y.tab.h"
+#include <unistd.h>
 #include "ekmem.h"
+#include "ekvm.h"
+
 #include "ekun.h"
 
 EkGstate ek_state;
@@ -38,7 +41,7 @@ void tokenize(char * source){
 void interpret(char * source){
     DEBUG_PRINT("in Interpreter");
     init_lexer(source);
-
+    initialize_code();
     //doing nothing for now just tokenizing
     if(IS_SET_OPT(OPT_TOKENIZE)){
         DEBUG_PRINT("Tokenize option set");
@@ -50,7 +53,9 @@ void interpret(char * source){
             printf("Dumping...\n");
     }
     else {
-        yyparse();
+        if(yyparse() == 0){
+            vm_run();
+        }
     }
 }
 
@@ -79,7 +84,7 @@ static char * read_file(char *filename){
 }
 
 
-static void usage(){
+static void usage(void){
     fprintf(stderr, "Usage: ekun [Options] [file]\n"
             "Options:\n"
             "  -t  --tokenize: Display token from source coden\n"
@@ -124,13 +129,14 @@ static void process_option(int argc, char ** argv){
 }
 
 
-static void init_state(){
+static void init_state(void){
     DEBUG_PRINT("in init_state");
     ek_state.filename = NULL;
     ek_state.file_handler = NULL;
     ek_state.line_no = 1;
     ek_state.has_error = false;
     ek_state.options = 0;
+    ek_state.interactive = false;
 }
 
 
@@ -145,14 +151,24 @@ void ek_sig_handler(int sig){
 }
 
 
-static void repl(){
+static void repl(void){
     DEBUG_PRINT("In repl");
-
+    if(isatty(fileno(stdin))){
+        ek_state.interactive = true;
+        char * Welcome_message = "E KAABO!\n"
+            "Programming ni ede Yoruba "
+            "(C) 2024";
+        printf("%s\n", Welcome_message);
+    }
     for(;;){
         char * line = NULL;
         size_t char_no = 0;
+        if(ek_state.interactive)
+            printf("> ");
         if(getline(&line, &char_no, stdin) == -1){
-            exit(1);
+            EK_FREE(line);
+            putchar('\n');
+            break;
         }
         interpret(line);
         EK_FREE(line);
@@ -176,13 +192,14 @@ static void run(void){
 
 int main(int argc, char ** argv){
     init_state();
+    vm_init();
     ek_state.progname = *argv; 
     process_option(argc, argv);
     run();
-
     if(ek_state.has_error){
         EK_ERROR(ek_state.line_no, "Unknown Error");
         exit(64);
     }
+    vm_cleanup();
     exit(0);
 }

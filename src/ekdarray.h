@@ -2,7 +2,7 @@
 #define __EKDARRAY_H
 
 #define INIT_SIZE 8
-#define RESIZE_FACTOR 0.5
+#define RESIZE_FACTOR 2
 
 #define RESIZE(cap) ((cap)? (cap) + (cap) * RESIZE_FACTOR: INIT_SIZE)
 
@@ -29,7 +29,7 @@
     static void prefix##_resize(type_name *array) {             \
         int new_capacity = RESIZE(array->capacity);             \
         array->data = realloc(array->data,                      \
-                new_capacity * sizeof(obj_type));               \
+                new_capacity * sizeof(*array->data));               \
         array->capacity = new_capacity;                         \
     }                                                           \
                                                                 \

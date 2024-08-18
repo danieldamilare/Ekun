@@ -10,7 +10,6 @@
 
 void * ek_malloc(size_t nbytes){
     DEBUG_PRINT("in ek_malloc");
-    assert(nbytes);
     void * ptr = malloc(nbytes);
     if(ptr == NULL){
         fprintf(stderr, "%s: Unable to allocate memory", ek_state.progname);

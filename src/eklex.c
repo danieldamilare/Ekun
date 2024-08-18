@@ -36,12 +36,12 @@ static Token initialize_token(Ttype token_type){
 }
 
 
-static int next_char(){
+static int next_char(void){
     return *lex.current++;
 }
 
 
-static int peek(){
+static int peek(void){
     return *lex.current;
 }
 
@@ -97,7 +97,7 @@ Token token_number(void){
         EK_ERROR(*lex.line_no, "error in digit %.*s", (int)(lex.current - lex.start) + 1, lex.start);
         exit(1);
     }
-    return initialize_token(NUMBER);
+    return initialize_token(NOOMBA);
 }
 
 
@@ -114,7 +114,7 @@ Token token_string(void){
         exit(1);
     }
     next_char(); // skip to the beginning of the next token;
-    return initialize_token(STRING);
+    return initialize_token(ORO);
 }
 
 Token check_keyword(char * keyword, char * expect, Ttype ifexpect){
@@ -128,6 +128,7 @@ Token check_keyword(char * keyword, char * expect, Ttype ifexpect){
 Token token_identifier(char * word){
     // no keyword with a length of 1
     if(strlen(word) == 1) return initialize_token(IDENT); 
+
     switch(word[0]){
 
         case 't':
@@ -162,8 +163,18 @@ Token token_identifier(char * word){
         case 'd': return check_keyword(word+1, "ogba", DOGBA);
         case 'f': return check_keyword(word+1, "i", FI);
         case 'a': return check_keyword(word+1, "ti", ATI);
-        case 'i': return check_keyword(word+1, "se", ISE);
+        case 'o': return check_keyword(word+1, "oto", OOTO);
+
+        case 'i': 
+                  switch(word[1]){
+                      case 'r': return check_keyword(word+2, "o", IRO);
+                      case 's': return check_keyword(word+2, "e", ISE);
+                      default: return initialize_token(IDENT);
+                  }
+                  break;
+
         case 'b': return check_keyword(word+1, "ibeeko", BIBEEKO);
+
         case 's': 
                   switch(word[1]){
                       case 'i': 
@@ -180,12 +191,13 @@ Token token_identifier(char * word){
                           return initialize_token(IDENT);
                   }
                   break;
+
         default:
                   return initialize_token(IDENT);
     }
 }
 
-Token token_ident(){
+Token token_ident(void){
     while(ek_isalpha(peek()) || isdigit(peek()))
         next_char();
     char word[512] = {0};
@@ -213,6 +225,7 @@ Token get_token(void){
         case '^': return initialize_token(CARET);
         case '/': return initialize_token(SLASH);
         case '>': return follow('=', GTEQ, GT);
+        case '!': return follow('=', NEQ, NOT);
         case '<': return follow('=', LTEQ, LT);
         case '=': return follow('=', EQEQ, EQ);
         case '"': return token_string();
@@ -236,8 +249,8 @@ void print_type(int type){
         case NEWLINE:
             printf("NEWLINE");
             break;
-        case NUMBER:
-            printf("NUMBER");
+        case NOOMBA:
+            printf("NOOMBA");
             break;
         case IDENT:
             printf("IDENT");
@@ -320,8 +333,14 @@ void print_type(int type){
         case EKEOF:
             printf("EKEOF");
             break;
-        case STRING:
-            printf("STRING");
+        case ORO:
+            printf("ORO");
+            break;
+        case OOTO:
+            printf("OOTO");
+            break;
+        case IRO:
+            printf("IRO");
             break;
     }
 }

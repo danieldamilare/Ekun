@@ -9,7 +9,11 @@ typedef struct {
     int line;
 } Codeline;
 
-CREATE_DARRAY(Lval, Const);
+typedef struct { 
+    int count; 
+    int capacity; 
+    Lval **data; 
+} Const;                                                
 
 typedef struct code{                              
     int count;                  
@@ -21,8 +25,10 @@ typedef struct code{
     Codeline * lines;
 } Code;             
 
-void code_append(Code * array, void * data, int line);
+void ** code_append(Code * array, void * data, int line);
 void code_free(Code * array);
 void code_init(Code * array);
+int get_codeline(Code * array, int offset);
+void * store_constant(Code * array, Lval value);
 
 #endif
