@@ -11,6 +11,7 @@
 #include "ektypes.h"
 #include "dbg.h"
 #include "ekvm.h"
+
 #define CODEGEN(C) write_code(C, ek_state.line_no)
 
 #define CODEGEN2(C1, C2)                \
@@ -85,7 +86,10 @@ expr    : NOOMBA
 
         | ORO
          {
-         }
+            Objstring * string = make_string($1.start+1, $1.length - 2);
+            void * data = write_constant(CREATE_STR(string));
+            CODEGEN2(constpush, data);
+          }
 
         | MINUS expr %prec UNARYMINUS
         { DEBUG_PRINT("expr: MINUS expr");

@@ -139,7 +139,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 27 "ekparser.y"
+#line 28 "ekparser.y"
 
     Token tok;
     void  ** ptr;

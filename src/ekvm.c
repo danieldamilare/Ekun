@@ -210,6 +210,16 @@ void print(void){
             printf("%s\n", value.val.boolean?"ooto": "iro");
             break;
         case LVAL_OBJ:
+            {
+                Object * obj = value.val.obj;
+
+            switch(obj->type){
+                case OBJ_STRING:
+                    printf("%s\n", 
+                            ((Objstring *)obj)->ch);
+            }
+                        
+            }
             break;
     }
 }

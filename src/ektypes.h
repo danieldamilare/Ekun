@@ -22,7 +22,7 @@ typedef struct obj_string{
     Object obj;
     uint32_t hash;
     int length;
-    char * ch;
+    char ch[1];
 
 }Objstring;
 
@@ -40,6 +40,8 @@ typedef struct {
 #define CREATE_NUM(value) (Lval){LVAL_NUM, .val.number = value}
 
 #define CREATE_BOOL(value) (Lval){LVAL_BOOL, .val.boolean =value }
+
+#define CREATE_STR(value) (Lval){LVAL_OBJ, .val.obj = (Object *) value}
 
 #define GET_NUM(value) (value.val.number)
 #define GET_BOOL(value) (value.val.boolean)
@@ -65,5 +67,7 @@ static inline const char * gettype(short type){
             return NULL;
     }
 }
+
+Objstring * make_string(const char * s, int length);
 
 #endif
