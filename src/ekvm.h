@@ -13,9 +13,11 @@ typedef struct _vm {
     Stack stack;
     /* contains the vm bytecode */
     Code  instructions;
+    Object * objects;
     void ** pc;
     void ** progbase;
-    Symbol * globals;
+    Symbol strings;
+    Symbol globals;
 } VM;
 
 extern VM vm;
@@ -37,7 +39,7 @@ int get_err_no(void);
 /* OPCODES */
 void ppop(void), constpush(void), sub(void), mod(void), add(void),
      mul(void), power(void), eq(void), le(void), lt(void), gt(void), ge(void),
-     print(void), neg(void), divide(void), ooto(void), iro(void);
+     print(void), neg(void), divide(void), ooto(void), iro(void), gvarpush(void), gvarstore(void);
 
 #define STOP NULL
 #endif

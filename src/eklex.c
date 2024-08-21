@@ -103,8 +103,8 @@ Token token_number(void){
 
 Token token_string(void){
 
-    while(peek() != '"'  || peek() == '\0' 
-            || peek() == '\n') {// does not support multiline string
+    while(peek() != '"'  && peek() != '\0' 
+            && peek() != '\n') {// does not support multiline string
         next_char();
     }
 
@@ -116,6 +116,7 @@ Token token_string(void){
     next_char(); // skip to the beginning of the next token;
     return initialize_token(ORO);
 }
+
 
 Token check_keyword(char * keyword, char * expect, Ttype ifexpect){
     if(strlen(keyword) != strlen(expect))

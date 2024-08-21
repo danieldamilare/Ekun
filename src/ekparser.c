@@ -684,7 +684,7 @@ static const yytype_uint8 yyrline[] =
 {
        0,    54,    54,    58,    61,    67,    68,    69,    72,    78,
       82,    87,    94,    98,   102,   106,   110,   114,   118,   122,
-     126,   130,   134,   138,   142,   146,   153,   154
+     126,   130,   134,   138,   142,   146,   152,   153
 };
 #endif
 
@@ -1647,7 +1647,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 157 "ekparser.y"
+#line 156 "ekparser.y"
 
 
 /* yydebug = 1; */

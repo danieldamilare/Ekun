@@ -23,6 +23,8 @@ write_code(C2, ek_state.line_no)
     write_code(C2, ek_state.line_no);   \
     write_code(C3, ek_state.line_no)
 
+static void gen_var(const char *, int);
+
 %}
 
 %union {
@@ -31,7 +33,7 @@ write_code(C2, ek_state.line_no)
 }
 
 %token <tok> NEWLINE NOOMBA IDENT ORO OOTO IRO
-%type <ptr> expr
+%type <ptr> expr stmt assignstmt
 
 //keywords
 %token <tok> TI PARI SE FI DOGBA NIGBATI PADA ISE
@@ -62,6 +64,7 @@ stmt   : expr
        { DEBUG_PRINT("stmt: expr"); 
          CODEGEN(print);
        }
+       | assignstmt
        ;
 
 stmtlist:  /* nothing */
@@ -82,6 +85,11 @@ expr    : NOOMBA
         | IRO
           { DEBUG_PRINT("expr: IRO");
             CODEGEN(iro);
+          }
+        | IDENT {
+            Objstring * string = make_string($1.start, $1.length);
+            void * data = write_constant(CREATE_STR(string));
+            CODEGEN2(gvarpush, data);
           }
 
         | ORO
@@ -148,7 +156,13 @@ expr    : NOOMBA
           $$ = $2;}
         ;
 
-
+ assignstmt: IDENT EQ expr {
+           gen_var($1.start, $1.length);
+           }
+           | FI expr SI IDENT 
+           {
+           gen_var($4.start, $4.length);
+           }
 
 stat_end: NEWLINE
         |  SEMI
@@ -156,6 +170,13 @@ stat_end: NEWLINE
 
 %%
 
+static void gen_var(const char * str, int length){
+         Objstring * string = 
+         make_string(str, length);
+             void * data = write_constant(
+         CREATE_STR(string));
+        CODEGEN2(gvarstore, data);
+}
 /* yydebug = 1; */
 void yyerror(char * message){
     EK_ERROR(ek_state.line_no, "%s", message);

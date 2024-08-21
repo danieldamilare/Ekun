@@ -6,12 +6,12 @@
 /* Entry data structure for the hash table */
 typedef struct entry {
     Objstring * key;
-    Lval * value;
+    Lval  value;
     struct entry * next;
 } Entry;
 
 #define INITIAL_SIZE 8
-#define GROWTH_RATE 0.75
+#define LOAD_FACTOR 0.75
 
 typedef struct symbol {
     int size;
@@ -30,8 +30,14 @@ static inline uint32_t hash_string(Objstring * obj){
 }
 
 Symbol * new_table(void);
+void  init_table(Symbol *);
 Entry * lookup(Symbol * table, Objstring * key);
-Entry * table_put(Symbol * table, Objstring * key, Lval * value);
+Entry * table_put(Symbol * table, Objstring * key, Lval  value);
 void free_entries(Symbol * table);
+bool table_get(Symbol * table, Objstring * key, Lval * value);
+bool table_delete(Symbol * table, Objstring * key);
 void  adjust_table(Symbol  * table);
+Objstring * table_find_string(Symbol * table, const char * str, int length, uint32_t hash);
+
+
 #endif

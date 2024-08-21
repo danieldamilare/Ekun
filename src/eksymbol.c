@@ -30,6 +30,12 @@ Symbol * new_table(void){
     return new;
 }
 
+void init_table(Symbol * table){
+    table->size = 0;
+    table->capacity = 0;
+    table->bucket = NULL;
+}
+
 /* Return the list entry containing key in table. if no list entry has key
  * return NULL
  */
@@ -38,7 +44,7 @@ Entry * lookup(Symbol * table, Objstring * key){
 
     Entry * entry = table->bucket[index % table->capacity];
     while(entry != NULL){
-        if(CMP_EQUAL(entry->key->ch, key->ch)) break;
+        if(entry->key == key) break;
         entry = entry->next;
     }
     return entry;
@@ -70,15 +76,20 @@ void adjust_table(Symbol * table){
 }
 
 
-Lval * table_get(Symbol * table, Objstring * key){
+bool table_get(Symbol * table, Objstring * key, Lval * value){
+    if(table->size == 0) return false;
     Entry * entry = lookup(table, key);
-    return entry == NULL ? NULL : entry->value;
+    if(entry){
+        *value = entry->value;
+        return true;
+    }
+    return false;
 }
 
 
 /* get value from hash table if it exists otherwise return null */
-Entry * table_put(Symbol * table, Objstring * key, Lval * value){
-    if (table->size + 1 >= table->capacity * GROWTH_RATE)
+Entry * table_put(Symbol * table, Objstring * key, Lval  value){
+    if (table->size + 1 >= table->capacity * LOAD_FACTOR)
         adjust_table(table);
 
     Entry * entry =lookup(table, key);
@@ -100,6 +111,58 @@ Entry * table_put(Symbol * table, Objstring * key, Lval * value){
 }
 
 
+bool table_delete(Symbol * table, Objstring * key){
+    int index = key->hash % table->capacity;
+    Entry * prev, *cur;
+    prev = NULL;
+    cur = table->bucket[index];
+    bool found = false;
+
+    while(cur != NULL){
+        if(cur->key == key){
+            found = true;
+            break;
+        }
+        prev = cur;
+        cur = cur->next;
+    }
+    if (found){
+        table->size--;
+        if(prev)
+            prev->next =cur->next;
+        else
+            table->bucket[index] = cur->next;
+        EK_FREE(cur);
+    }
+    return found;
+
+}
+
+Objstring * table_find_string(Symbol * table, const char * str, int length, uint32_t hash){
+    if(table->size == 0) return NULL;
+    int index = hash % table->capacity;
+    Entry * entry = table->bucket[index];
+
+    while(entry != NULL){
+        if (entry->key->length == length 
+                && entry->key->hash == hash 
+                && memcmp(str, entry->key->ch, length) == 0)
+            return entry->key;
+        entry = entry->next;
+    }
+    return NULL;
+}
+
+
 void free_entries(Symbol * table){
+    if(table->bucket == NULL) return;
+    for(int i = 0; i < table->capacity; i++){
+        Entry *next, * entry = table->bucket[i];
+        while(entry != NULL){
+            next = entry->next;
+            EK_FREE(entry);
+            entry = next;
+        }
+    }
     EK_FREE(table->bucket);
 }

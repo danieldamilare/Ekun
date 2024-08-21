@@ -38,14 +38,25 @@ Lval peek(int i){
 void vm_init(void){
     stack_init(&vm.stack);
     code_init(&vm.instructions);
-    vm.globals = new_table();
+    init_table(&vm.globals);
+    init_table(&vm.strings);
+    vm.objects = NULL;
+}
+
+static void free_objects(){
+    for(Object * obj = vm.objects; obj != NULL;){
+        Object * next = obj->next;
+        free(obj);
+        obj = next;
+    }
 }
 
 void vm_cleanup(void){
     stack_free(&vm.stack);
     code_free(&vm.instructions);
-    free_entries(vm.globals);
-    EK_FREE(vm.globals);
+    free_objects();
+    free_entries(&vm.globals);
+    free_entries(&vm.strings);
 }
 
 void ** write_code(void * data, int line){
@@ -71,6 +82,32 @@ void initialize_code(void){
     code_init(&vm.instructions);
 }
 
+
+static void concat_string(void){
+    Objstring * str2 = GET_STR(pop());
+    Objstring * str1 = GET_STR(pop());
+    int length = str1->length + str2->length;
+    char word[length];
+    memcpy(word, str1->ch, str1->length);
+    memcpy(word + str1->length, str2->ch, str2->length);;
+   uint32_t str_hash = hash(word, length);
+    Objstring * new_str = table_find_string(&vm.strings, word, length, str_hash);
+
+    if(new_str != NULL){
+        push(CREATE_STR(new_str));
+        return;
+    }
+
+    new_str = (Objstring *) make_obj(sizeof(*new_str)+length+1, OBJ_STRING);
+    memcpy(new_str->ch, word, length);
+
+    new_str->ch[length] = '\0';
+    new_str->length = length;
+    new_str->hash = str_hash;
+    table_put(&vm.strings, new_str, KOROFO);
+    push(CREATE_STR(new_str));
+}
+
 void vm_run(void){
     vm.progbase = vm.instructions.data;
     execute(vm.progbase);
@@ -80,6 +117,25 @@ void constpush(void){
     Lval  val = * (Lval *) vm_advance();
     push(val);
 }
+
+/* store global variable */
+void gvarstore(void){
+    Objstring * var = GET_STR(*((Lval *)vm_advance()));
+    table_put(&vm.globals, var, peek(0));
+    pop();
+}
+
+void gvarpush(void){
+    Objstring * var = GET_STR(*((Lval *)vm_advance()));
+    Lval value;
+    if(table_get(&vm.globals, var, &value))
+        push(value);
+    else {
+        table_put(&vm.globals, var, KOROFO);
+        push(KOROFO);
+    }
+}
+
 
 /* binary operation */
 
@@ -129,6 +185,10 @@ void add(void){
     double num1 = GET_NUM(pop());
     push(CREATE_NUM(num1 + num2));
     }
+    else if(CHECK_TYPE(*peek(0).val.obj, OBJ_STRING) &&
+            CHECK_TYPE(*peek(1).val.obj, OBJ_STRING)){
+        concat_string();
+    }
 }
 
 
@@ -145,6 +205,11 @@ void eq(void){
                 break;
             case LVAL_BOOL:
                 op = GET_BOOL(num1) == GET_BOOL(num2);
+                break;
+            case LVAL_OBJ:
+                if(num2.val.obj->type == OBJ_STRING){
+                    op = GET_STR(num1) == GET_STR(num2);
+                }
         }
     }
     push(CREATE_BOOL(op));
@@ -208,6 +273,9 @@ void print(void){
             break;
         case LVAL_BOOL:
             printf("%s\n", value.val.boolean?"ooto": "iro");
+            break;
+        case LVAL_NIL:
+            printf("korofo\n");
             break;
         case LVAL_OBJ:
             {
