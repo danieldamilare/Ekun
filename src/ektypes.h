@@ -13,6 +13,7 @@ typedef enum {
 
 typedef enum{
     OBJ_STRING = 300,
+    OBJ_FUNC
 } Otype;
 
 typedef struct object {
@@ -26,6 +27,12 @@ typedef struct obj_string{
     int length;
     char ch[];
 }Objstring;
+
+typedef struct {
+    Object obj;
+    int arity;
+    Objstring * name;
+} Objfunc;
 
 typedef struct {
     Dtype type;
@@ -49,6 +56,7 @@ typedef struct {
 #define GET_NUM(value) ((value).val.number)
 #define GET_BOOL(value) ((value).val.boolean)
 #define GET_STR(value)  (Objstring *)((value).val.obj)
+#define GET_FUNC(value)  (Objfunc *)((value).val.obj)
 
 #define EQUAL_TYPE(type)                                            \
     do{                                                             \
@@ -75,5 +83,7 @@ static inline const char * gettype(short type){
 
 Objstring * make_string(const char * s, int length);
 Object * make_obj(int obj_lenght, Otype type);
+
+bool is_false(Lval val);
 
 #endif
