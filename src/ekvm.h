@@ -29,7 +29,7 @@ void vm_init(void);
 double check_err(double d);
 void vm_cleanup(void);
 typedef void (* Opfunc)(void);
-void ** write_code(void * data, int line);
+intptr_t write_code(void * data, int line);
 void * write_constant(Lval value);
 void vm_run(void);
 void initialize_code(void);
@@ -39,7 +39,7 @@ int get_err_no(void);
 /* OPCODES */
 void ppop(void), constpush(void), sub(void), mod(void), add(void),
      mul(void), power(void), eq(void), le(void), lt(void), gt(void), ge(void),
-     print(void), neg(void), divide(void), ooto(void), iro(void), gvarpush(void), gvarstore(void);
+     print(void), neg(void), divide(void), ooto(void), iro(void), gvarpush(void), gvarstore(void), jz(void), jmp(void), andjmp(void), orjmp(void), forloop(void);
 
 #define STOP NULL
 #endif

@@ -51,6 +51,7 @@ static void free_objects(){
     }
 }
 
+
 void vm_cleanup(void){
     stack_free(&vm.stack);
     code_free(&vm.instructions);
@@ -59,7 +60,7 @@ void vm_cleanup(void){
     free_entries(&vm.strings);
 }
 
-void ** write_code(void * data, int line){
+intptr_t write_code(void * data, int line){
     return code_append(&vm.instructions, data, line);
 }
 
@@ -136,6 +137,63 @@ void gvarpush(void){
     }
 }
 
+/* control flow functions */
+void jz(void){
+    intptr_t num = (intptr_t) vm_advance();
+    /* printf("regained patch: patch is now: %ld\n", num); */
+    /* printf("condition is %s\n", is_false(peek(0))? "false": "true"); */
+    if (is_false(peek(0))){
+        /* printf("condition is 0... skipping\n"); */
+        vm.pc = &vm.instructions.data[num];
+    }
+}
+
+
+void jmp(void){
+    intptr_t num = (intptr_t) vm_advance();
+    /* printf("regained patch: patch is now: %ld\n", num); */
+    vm.pc = &vm.instructions.data[num];
+}
+
+void andjmp(void){
+    intptr_t expr_true = (intptr_t) vm_advance();
+    intptr_t expr_false = (intptr_t) vm_advance();
+    if(is_false(peek(0))){ //leave the value on the stack as the result of the expr
+        vm.pc = &vm.instructions.data[expr_false];
+    } else {  
+    //if true we need to evaluate the next value and use as the result of the expr
+        pop();
+        vm.pc = &vm.instructions.data[expr_true];
+    }
+}
+
+void orjmp(void){
+    intptr_t expr_true = (intptr_t) vm_advance();
+    intptr_t expr_false = (intptr_t) vm_advance();
+
+    if(is_false(peek(0))){ //
+        pop();
+        vm.pc = &vm.instructions.data[expr_false];
+    } else{ //leave the value on the stack as the result of the expr
+        vm.pc= &vm.instructions.data[expr_true];
+    }
+
+}
+
+void forloop(void){
+    int jmp_addr = (intptr_t) vm_advance();
+    EQUAL_TYPE(LVAL_NUM);
+    double incr = GET_NUM(peek(0));
+    double num2 = GET_NUM(peek(1));
+    double num1 = GET_NUM(peek(2));
+    if(num1 > num2){
+        vm.pc = &vm.instructions.data[jmp_addr];
+    } else {
+        push(CREATE_NUM(num1));
+        num1 += incr;
+        vm.stack.data[vm.stack.count -4] = CREATE_NUM(num1);
+    }
+}
 
 /* binary operation */
 
@@ -160,6 +218,9 @@ void mod(void){
     EQUAL_TYPE(LVAL_NUM);
     double num2 = GET_NUM(pop());
     double num1 = GET_NUM(pop());
+    if(num2 == 0){
+        EK_ERROR(ek_state.line_no, "error trying to divide by zero");
+    }
     long quotient = (long)(num1) / (long)(num2);
     double remainder = num1 - quotient * num2;
     push(CREATE_NUM(remainder));
@@ -195,7 +256,7 @@ void add(void){
 void eq(void){
     Lval num2 = pop();
     Lval num1 = pop();
-    bool op;
+    bool op = true;
     if(num2.type != num1.type)
         op = false;
     else{
@@ -228,7 +289,7 @@ void lt(void){
     EQUAL_TYPE(LVAL_NUM);
     double num2= GET_NUM(pop());
     double num1= GET_NUM(pop());
-    push(CREATE_BOOL(num1 <= num2));
+    push(CREATE_BOOL(num1 < num2));
 }
 
 void neg(void){
@@ -285,6 +346,10 @@ void print(void){
                 case OBJ_STRING:
                     printf("%s\n", 
                             ((Objstring *)obj)->ch);
+                    break;
+                case OBJ_FUNC:
+                    printf("<ise %s>\n", ((Objfunc *) obj)->name->ch);
+                    break;
             }
                         
             }
