@@ -1,8 +1,6 @@
-%{
-/* Yacc parser for the Yoruba programming language
- * Copyright (C) 2024 Joseph Daniel
- */
+ /* Copyright (C) 2024 Joseph Daniel*/
 
+%{
 #include <stdlib.h>
 #include <stdint.h>
 #include "ekun.h"
@@ -25,6 +23,10 @@ write_code(C2, ek_state.line_no)
     write_code(C3, ek_state.line_no)
 
 static void gen_var(const char *, int);
+static void begin_scope(void);
+static void end_scope(void);
+
+Compiler * current;
 
 %}
 
@@ -34,7 +36,7 @@ static void gen_var(const char *, int);
 }
 
 %token <tok> NEWLINE NOOMBA IDENT ORO OOTO IRO
-%type <ptr> expr stmt ifstmt assignstmt  printstmt ifblk elsestmt stmtlist  whilestmt forstmt ifikun
+%type <ptr> expr stmt ifstmt assignstmt  printstmt ifblk elsestmt stmtlist  whilestmt forstmt ifikun funcstmt arglist
 %type <ptr> elsepatch andpatch orpatch ifpatch loopatch loopatch2 forpatch
 
 //keywords
@@ -75,6 +77,9 @@ stmt   : expr
        { DEBUG_PRINT("stmt: whilestmt"); }
        | forstmt {
         DEBUG_PRINT("stmt: forstmt");}
+       | funcstmt {
+         DEBUG_PRINT("stmt: funcstmt");
+       }
        ;
 
 
@@ -257,6 +262,14 @@ ifikun: /* nothing */ {
       }
       ;
 
+funcstmt: ISE IDENT LPAR arglist RPAR stmt PARI{
+        DEBUG_PRINT("funcstmt: ISE IDENT LPAR \
+            arglist RPAR stmt PARI");
+        }
+
+arglist: 
+       ;
+
 /* patches */
 
 loopatch  : {
@@ -288,7 +301,8 @@ andpatch : {
 
 forpatch: {
         $$ =CODEGEN2(forloop, NULL);
-}
+        }
+        ;
 
 elsepatch: {
          DEBUG_PRINT("in elsepatch");
@@ -309,6 +323,26 @@ static void gen_var(const char * str, int length){
          CREATE_STR(string));
         CODEGEN2(gvarstore, data);
 }
+
+static void init_compiler(Compiler * compiler){
+    compiler->function = NULL;
+    compiler->local_count = 0;
+    compiler->scope_depth = 0;
+    current = compiler;
+}
+
+static void begin_scope(){
+    current->scope_depth++;
+}
+
+static void end_scope(){
+    current->scope_depth--;
+}
+
 void yyerror(char * message){
     EK_ERROR(ek_state.line_no, "%s", message);
+}
+
+int compiler(){
+
 }

@@ -1,5 +1,6 @@
 #include "ekmem.h"
 #include "ekbytecode.h"
+#include "ekun.h"
 #include "dbg.h"
 #include <stdlib.h>
 #include "ekvm.h"
@@ -22,12 +23,12 @@ static void const_free(Const  *array) {
 
 static void const_resize(Const *array) {
     DEBUG_PRINT("in const_resize");
-    DEBUG_PRINT("former array size: %d", array->capacity);
+    /* DEBUG_PRINT("former array size: %d", array->capacity); */
     int new_capacity = RESIZE(array->capacity);
-    DEBUG_PRINT("new size: %d", new_capacity);
+    /* DEBUG_PRINT("new size: %d", new_capacity); */
     array->data = realloc(array->data,  new_capacity * sizeof(*(array->data))); 
     if(array->data == NULL){
-        DEBUG_PRINT("Error allocating memory\n");
+        EK_ERROR(ek_state.line_no, "Error allocating memory\n");
         exit(104);
     }
     array->capacity = new_capacity;                         
@@ -36,16 +37,13 @@ static void const_resize(Const *array) {
 
 static void const_append(Const  *array,  Lval * data){ 
     DEBUG_PRINT("In constant append");
-    DEBUG_PRINT("printing constant\n\n\n");
-    for(int i = 0; i < array->count; i++){
-        DEBUG_PRINT("%g\n", GET_NUM(array->data[i]));
-    }
-    DEBUG_PRINT("End of Constant\n\n\n");
+    /* DEBUG_PRINT("printing constant\n\n\n"); */
+    /* DEBUG_PRINT("End of Constant\n\n\n"); */
     if(array->count >= array->capacity) 
           const_resize(array); 
-    DEBUG_PRINT("current_array count: %d", array->count);
+    /* DEBUG_PRINT("current_array count: %d", array->count); */
     array->data[array->count++]= data; 
-    DEBUG_PRINT("new count: %d", array->count);
+    /* DEBUG_PRINT("new count: %d", array->count); */
 } 
 
 
@@ -73,16 +71,20 @@ void code_free(Code * array){
                                  
 static void code_resize(Code * array){              
     DEBUG_PRINT("in code_resize");
-    DEBUG_PRINT("former array size: %d", array->capacity);
+    /* DEBUG_PRINT("former array size: %d", array->capacity); */
     int new_capacity = RESIZE(array->capacity);
-    DEBUG_PRINT("new size: %d", new_capacity);
+    /* DEBUG_PRINT("new size: %d", new_capacity); */
     array->data = realloc(array->data, new_capacity *               
             sizeof(*(array->data)));                           
     array->capacity = new_capacity;                      
 }
 
+intptr_t code_get_count(Code * array){
+    return array->count;
+}
 
-void ** code_append(Code * array, void * data, int line){
+
+int code_append(Code * array, void * data, int line){
     DEBUG_PRINT("appending to code\n");
     if(array->count >= array->capacity)
         code_resize(array);
@@ -100,7 +102,7 @@ void ** code_append(Code * array, void * data, int line){
       lines->offset = array->count - 1;
       lines->line = line;
 RETURN:
-      return &(array->data[array->count-1]);
+      return array->count-1;
 
 }
 
@@ -132,7 +134,6 @@ int get_codeline(Code * array, int offset){
 void * store_constant(Code * array, Lval value){
     Lval * temp = malloc(sizeof(*temp));
     memcpy(temp, &value, sizeof(*temp));
-    DEBUG_PRINT("%g", GET_NUM(*temp));
     DEBUG_PRINT("storing constant\n");
     Const * val = &(array->const_table);
     const_append(val, temp);

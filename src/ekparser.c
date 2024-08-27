@@ -67,13 +67,10 @@
 
 
 /* First part of user prologue.  */
-#line 1 "ekparser.y"
-
-/* Yacc parser for the Yoruba programming language
- * Copyright (C) 2024 Joseph Daniel
- */
+#line 3 "ekparser.y"
 
 #include <stdlib.h>
+#include <stdint.h>
 #include "ekun.h"
 #include "eklex.h"
 #include "ekmem.h"
@@ -93,8 +90,14 @@ write_code(C2, ek_state.line_no)
     write_code(C2, ek_state.line_no);   \
     write_code(C3, ek_state.line_no)
 
+static void gen_var(const char *, int);
+static void begin_scope(void);
+static void end_scope(void);
 
-#line 98 "y.tab.c"
+Compiler * current;
+
+
+#line 101 "y.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -123,7 +126,7 @@ write_code(C2, ek_state.line_no)
 # define YY_YY_Y_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -152,28 +155,32 @@ extern int yydebug;
     NIGBATI = 269,                 /* NIGBATI  */
     PADA = 270,                    /* PADA  */
     ISE = 271,                     /* ISE  */
-    SI = 272,                      /* SI  */
-    BIBEEKO = 273,                 /* BIBEEKO  */
-    LPAR = 274,                    /* LPAR  */
-    RPAR = 275,                    /* RPAR  */
-    SEMI = 276,                    /* SEMI  */
-    EQ = 277,                      /* EQ  */
-    TABI = 278,                    /* TABI  */
-    ATI = 279,                     /* ATI  */
-    GT = 280,                      /* GT  */
-    GTEQ = 281,                    /* GTEQ  */
-    LT = 282,                      /* LT  */
-    LTEQ = 283,                    /* LTEQ  */
-    EQEQ = 284,                    /* EQEQ  */
-    NEQ = 285,                     /* NEQ  */
-    PLUS = 286,                    /* PLUS  */
-    MINUS = 287,                   /* MINUS  */
-    ASTERISK = 288,                /* ASTERISK  */
-    SLASH = 289,                   /* SLASH  */
-    MODULUS = 290,                 /* MODULUS  */
-    UNARYMINUS = 291,              /* UNARYMINUS  */
-    NOT = 292,                     /* NOT  */
-    CARET = 293                    /* CARET  */
+    SOPE = 272,                    /* SOPE  */
+    SI = 273,                      /* SI  */
+    BIBEEKO = 274,                 /* BIBEEKO  */
+    LATI = 275,                    /* LATI  */
+    FUN = 276,                     /* FUN  */
+    IFIKUN = 277,                  /* IFIKUN  */
+    LPAR = 278,                    /* LPAR  */
+    RPAR = 279,                    /* RPAR  */
+    SEMI = 280,                    /* SEMI  */
+    EQ = 281,                      /* EQ  */
+    TABI = 282,                    /* TABI  */
+    ATI = 283,                     /* ATI  */
+    GT = 284,                      /* GT  */
+    GTEQ = 285,                    /* GTEQ  */
+    LT = 286,                      /* LT  */
+    LTEQ = 287,                    /* LTEQ  */
+    EQEQ = 288,                    /* EQEQ  */
+    NEQ = 289,                     /* NEQ  */
+    PLUS = 290,                    /* PLUS  */
+    MINUS = 291,                   /* MINUS  */
+    ASTERISK = 292,                /* ASTERISK  */
+    SLASH = 293,                   /* SLASH  */
+    MODULUS = 294,                 /* MODULUS  */
+    UNARYMINUS = 295,              /* UNARYMINUS  */
+    NOT = 296,                     /* NOT  */
+    CARET = 297                    /* CARET  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -196,39 +203,43 @@ extern int yydebug;
 #define NIGBATI 269
 #define PADA 270
 #define ISE 271
-#define SI 272
-#define BIBEEKO 273
-#define LPAR 274
-#define RPAR 275
-#define SEMI 276
-#define EQ 277
-#define TABI 278
-#define ATI 279
-#define GT 280
-#define GTEQ 281
-#define LT 282
-#define LTEQ 283
-#define EQEQ 284
-#define NEQ 285
-#define PLUS 286
-#define MINUS 287
-#define ASTERISK 288
-#define SLASH 289
-#define MODULUS 290
-#define UNARYMINUS 291
-#define NOT 292
-#define CARET 293
+#define SOPE 272
+#define SI 273
+#define BIBEEKO 274
+#define LATI 275
+#define FUN 276
+#define IFIKUN 277
+#define LPAR 278
+#define RPAR 279
+#define SEMI 280
+#define EQ 281
+#define TABI 282
+#define ATI 283
+#define GT 284
+#define GTEQ 285
+#define LT 286
+#define LTEQ 287
+#define EQEQ 288
+#define NEQ 289
+#define PLUS 290
+#define MINUS 291
+#define ASTERISK 292
+#define SLASH 293
+#define MODULUS 294
+#define UNARYMINUS 295
+#define NOT 296
+#define CARET 297
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 28 "ekparser.y"
+#line 33 "ekparser.y"
 
     Token tok;
-    void  ** ptr;
+    long int ptr;
 
-#line 232 "y.tab.c"
+#line 243 "y.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -265,34 +276,56 @@ enum yysymbol_kind_t
   YYSYMBOL_NIGBATI = 14,                   /* NIGBATI  */
   YYSYMBOL_PADA = 15,                      /* PADA  */
   YYSYMBOL_ISE = 16,                       /* ISE  */
-  YYSYMBOL_SI = 17,                        /* SI  */
-  YYSYMBOL_BIBEEKO = 18,                   /* BIBEEKO  */
-  YYSYMBOL_LPAR = 19,                      /* LPAR  */
-  YYSYMBOL_RPAR = 20,                      /* RPAR  */
-  YYSYMBOL_SEMI = 21,                      /* SEMI  */
-  YYSYMBOL_EQ = 22,                        /* EQ  */
-  YYSYMBOL_TABI = 23,                      /* TABI  */
-  YYSYMBOL_ATI = 24,                       /* ATI  */
-  YYSYMBOL_GT = 25,                        /* GT  */
-  YYSYMBOL_GTEQ = 26,                      /* GTEQ  */
-  YYSYMBOL_LT = 27,                        /* LT  */
-  YYSYMBOL_LTEQ = 28,                      /* LTEQ  */
-  YYSYMBOL_EQEQ = 29,                      /* EQEQ  */
-  YYSYMBOL_NEQ = 30,                       /* NEQ  */
-  YYSYMBOL_PLUS = 31,                      /* PLUS  */
-  YYSYMBOL_MINUS = 32,                     /* MINUS  */
-  YYSYMBOL_ASTERISK = 33,                  /* ASTERISK  */
-  YYSYMBOL_SLASH = 34,                     /* SLASH  */
-  YYSYMBOL_MODULUS = 35,                   /* MODULUS  */
-  YYSYMBOL_UNARYMINUS = 36,                /* UNARYMINUS  */
-  YYSYMBOL_NOT = 37,                       /* NOT  */
-  YYSYMBOL_CARET = 38,                     /* CARET  */
-  YYSYMBOL_YYACCEPT = 39,                  /* $accept  */
-  YYSYMBOL_program = 40,                   /* program  */
-  YYSYMBOL_stmt = 41,                      /* stmt  */
-  YYSYMBOL_stmtlist = 42,                  /* stmtlist  */
-  YYSYMBOL_expr = 43,                      /* expr  */
-  YYSYMBOL_stat_end = 44                   /* stat_end  */
+  YYSYMBOL_SOPE = 17,                      /* SOPE  */
+  YYSYMBOL_SI = 18,                        /* SI  */
+  YYSYMBOL_BIBEEKO = 19,                   /* BIBEEKO  */
+  YYSYMBOL_LATI = 20,                      /* LATI  */
+  YYSYMBOL_FUN = 21,                       /* FUN  */
+  YYSYMBOL_IFIKUN = 22,                    /* IFIKUN  */
+  YYSYMBOL_LPAR = 23,                      /* LPAR  */
+  YYSYMBOL_RPAR = 24,                      /* RPAR  */
+  YYSYMBOL_SEMI = 25,                      /* SEMI  */
+  YYSYMBOL_EQ = 26,                        /* EQ  */
+  YYSYMBOL_TABI = 27,                      /* TABI  */
+  YYSYMBOL_ATI = 28,                       /* ATI  */
+  YYSYMBOL_GT = 29,                        /* GT  */
+  YYSYMBOL_GTEQ = 30,                      /* GTEQ  */
+  YYSYMBOL_LT = 31,                        /* LT  */
+  YYSYMBOL_LTEQ = 32,                      /* LTEQ  */
+  YYSYMBOL_EQEQ = 33,                      /* EQEQ  */
+  YYSYMBOL_NEQ = 34,                       /* NEQ  */
+  YYSYMBOL_PLUS = 35,                      /* PLUS  */
+  YYSYMBOL_MINUS = 36,                     /* MINUS  */
+  YYSYMBOL_ASTERISK = 37,                  /* ASTERISK  */
+  YYSYMBOL_SLASH = 38,                     /* SLASH  */
+  YYSYMBOL_MODULUS = 39,                   /* MODULUS  */
+  YYSYMBOL_UNARYMINUS = 40,                /* UNARYMINUS  */
+  YYSYMBOL_NOT = 41,                       /* NOT  */
+  YYSYMBOL_CARET = 42,                     /* CARET  */
+  YYSYMBOL_YYACCEPT = 43,                  /* $accept  */
+  YYSYMBOL_program = 44,                   /* program  */
+  YYSYMBOL_stmt = 45,                      /* stmt  */
+  YYSYMBOL_stmtlist = 46,                  /* stmtlist  */
+  YYSYMBOL_expr = 47,                      /* expr  */
+  YYSYMBOL_printstmt = 48,                 /* printstmt  */
+  YYSYMBOL_assignstmt = 49,                /* assignstmt  */
+  YYSYMBOL_ifstmt = 50,                    /* ifstmt  */
+  YYSYMBOL_ifblk = 51,                     /* ifblk  */
+  YYSYMBOL_elsestmt = 52,                  /* elsestmt  */
+  YYSYMBOL_whilestmt = 53,                 /* whilestmt  */
+  YYSYMBOL_forstmt = 54,                   /* forstmt  */
+  YYSYMBOL_55_1 = 55,                      /* $@1  */
+  YYSYMBOL_ifikun = 56,                    /* ifikun  */
+  YYSYMBOL_funcstmt = 57,                  /* funcstmt  */
+  YYSYMBOL_arglist = 58,                   /* arglist  */
+  YYSYMBOL_loopatch = 59,                  /* loopatch  */
+  YYSYMBOL_loopatch2 = 60,                 /* loopatch2  */
+  YYSYMBOL_ifpatch = 61,                   /* ifpatch  */
+  YYSYMBOL_orpatch = 62,                   /* orpatch  */
+  YYSYMBOL_andpatch = 63,                  /* andpatch  */
+  YYSYMBOL_forpatch = 64,                  /* forpatch  */
+  YYSYMBOL_elsepatch = 65,                 /* elsepatch  */
+  YYSYMBOL_stat_end = 66                   /* stat_end  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -620,19 +653,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  3
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   85
+#define YYLAST   315
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  39
+#define YYNTOKENS  43
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  6
+#define YYNNTS  24
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  27
+#define YYNRULES  58
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  45
+#define YYNSTATES  108
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   293
+#define YYMAXUTOK   297
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -675,16 +708,19 @@ static const yytype_int8 yytranslate[] =
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    37,    38
+      35,    36,    37,    38,    39,    40,    41,    42
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
-       0,    54,    54,    58,    61,    67,    68,    69,    72,    78,
-      82,    87,    94,    98,   102,   106,   110,   114,   118,   122,
-     126,   130,   134,   138,   142,   146,   152,   153
+       0,    59,    59,    63,    66,    70,    72,    74,    76,    78,
+      80,    86,    87,    88,    91,    97,   101,   105,   112,   120,
+     124,   128,   132,   136,   140,   144,   148,   152,   156,   160,
+     164,   170,   176,   180,   184,   190,   197,   203,   210,   214,
+     229,   233,   237,   242,   248,   248,   257,   261,   265,   270,
+     275,   280,   286,   292,   297,   302,   307,   313,   314
 };
 #endif
 
@@ -702,10 +738,14 @@ static const char *const yytname[] =
 {
   "\"end of file\"", "error", "\"invalid token\"", "NEWLINE", "NOOMBA",
   "IDENT", "ORO", "OOTO", "IRO", "TI", "PARI", "SE", "FI", "DOGBA",
-  "NIGBATI", "PADA", "ISE", "SI", "BIBEEKO", "LPAR", "RPAR", "SEMI", "EQ",
-  "TABI", "ATI", "GT", "GTEQ", "LT", "LTEQ", "EQEQ", "NEQ", "PLUS",
-  "MINUS", "ASTERISK", "SLASH", "MODULUS", "UNARYMINUS", "NOT", "CARET",
-  "$accept", "program", "stmt", "stmtlist", "expr", "stat_end", YY_NULLPTR
+  "NIGBATI", "PADA", "ISE", "SOPE", "SI", "BIBEEKO", "LATI", "FUN",
+  "IFIKUN", "LPAR", "RPAR", "SEMI", "EQ", "TABI", "ATI", "GT", "GTEQ",
+  "LT", "LTEQ", "EQEQ", "NEQ", "PLUS", "MINUS", "ASTERISK", "SLASH",
+  "MODULUS", "UNARYMINUS", "NOT", "CARET", "$accept", "program", "stmt",
+  "stmtlist", "expr", "printstmt", "assignstmt", "ifstmt", "ifblk",
+  "elsestmt", "whilestmt", "forstmt", "$@1", "ifikun", "funcstmt",
+  "arglist", "loopatch", "loopatch2", "ifpatch", "orpatch", "andpatch",
+  "forpatch", "elsepatch", "stat_end", YY_NULLPTR
 };
 
 static const char *
@@ -715,7 +755,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-32)
+#define YYPACT_NINF (-25)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -727,13 +767,19 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-static const yytype_int8 yypact[] =
+static const yytype_int16 yypact[] =
 {
-     -32,    11,    -3,   -32,    -1,   -32,   -32,   -32,   -32,   -32,
-       2,   -32,     2,    -1,    27,   -32,   -32,    10,   -31,   -32,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,   -32,    -7,    -7,    -7,    -7,    -7,    -7,    34,
-      34,   -31,   -31,   -31,   -31
+     -25,    10,   110,   -25,     2,   -25,   -25,   -24,   -25,   -25,
+     -25,    75,    75,   -25,     4,    75,     7,    75,   -25,    75,
+       2,   238,   -25,   -25,   -25,    -3,   -25,   -25,   -25,   -25,
+     -25,    75,   -25,   121,   148,    75,     5,   238,    13,   169,
+     -20,   -25,    75,   -25,   -25,    75,    75,    75,    75,    75,
+      75,    75,    75,    75,    75,    75,   -25,   238,   -25,    24,
+     238,   -25,    75,   -25,    11,    75,    75,    11,    11,    11,
+      11,    11,   100,   100,   -20,   -20,   -20,   -20,   -25,   -25,
+      41,    40,   196,   259,   273,   110,   -25,     9,    75,    47,
+      53,    58,   217,    62,   -25,   -25,   -25,    75,   -25,   110,
+     -25,   238,   -25,   -25,    61,   -25,    87,   -25
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -741,23 +787,33 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       5,     0,     2,     1,     0,    26,     8,    11,     9,    10,
-       0,    27,     0,     0,     4,     6,     3,     0,    12,     7,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,    25,    18,    15,    14,    16,    19,    17,    13,
-      20,    21,    22,    24,    23
+      11,     0,     2,     1,     0,    57,    14,    17,    18,    15,
+      16,     0,     0,    50,     0,     0,     0,     0,    58,     0,
+       0,     4,     7,     5,     6,     0,     8,     9,    10,    12,
+       3,     0,    17,     0,     0,     0,     0,    35,     0,     0,
+      19,    13,     0,    53,    54,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,    38,    36,    52,     0,
+      51,    49,     0,    34,    25,     0,     0,    22,    21,    23,
+      26,    24,    20,    27,    28,    29,    33,    32,    11,    37,
+       0,     0,     0,    31,    30,    56,    11,     0,     0,    40,
+       0,     0,    46,    11,    39,    43,    48,     0,    50,    42,
+      41,    47,    55,    44,     0,    11,     0,    45
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -32,   -32,   -32,   -32,    54,     9
+     -25,   -25,   -14,    50,   -11,   -25,   -25,   -25,   -18,   -25,
+     -25,   -25,   -25,   -25,   -25,   -25,   -13,   -25,   -25,   -25,
+     -25,   -25,   -25,    -1
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     1,    13,     2,    14,    15
+       0,     1,    20,     2,    21,    22,    23,    24,    25,    94,
+      26,    27,   104,    98,    28,    81,    35,    80,    78,    65,
+      66,   103,    89,    29
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -765,55 +821,113 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       5,     6,     5,     7,     8,     9,     6,    31,     7,     8,
-       9,     3,     4,    16,     0,     0,    10,     0,    11,     0,
-      11,    10,    19,    20,    26,    27,    28,    29,    30,    12,
-      32,    31,     0,     0,    12,    21,    22,    23,    24,    25,
-      20,    26,    27,    28,    29,    30,     0,     0,    31,     0,
-       0,     0,    21,    22,    23,    24,    25,     0,    26,    27,
-      28,    29,    30,     0,    17,    31,    18,    28,    29,    30,
-       0,     0,    31,     0,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    42,    43,    44
+      33,    34,    31,    30,    37,     5,    39,    56,    40,    36,
+       3,     4,    38,     6,     7,     8,     9,    10,    11,    41,
+      57,    12,    55,    13,    60,    14,    15,    18,    61,    79,
+      16,    64,    17,    62,    67,    68,    69,    70,    71,    72,
+      73,    74,    75,    76,    77,    19,    50,    51,    52,    53,
+      54,    82,    86,    55,    83,    84,     5,     6,     7,     8,
+       9,    10,    11,    95,    87,    12,    93,    13,    96,    14,
+      15,    11,   105,    91,    16,   100,    17,    92,    18,     6,
+      32,     8,     9,    10,     0,   102,   101,     0,     0,    19,
+       5,     6,     7,     8,     9,    10,    11,   107,    17,    12,
+       0,    13,     0,    14,    15,     0,     0,     0,    16,     0,
+      17,    19,    18,     5,     6,     7,     8,     9,    10,    11,
+       0,     0,    12,    19,    13,     0,    14,    15,    85,     0,
+       0,    16,    58,    17,    42,    18,    90,    52,    53,    54,
+       0,     0,    55,    99,     0,     0,    19,     0,    43,    44,
+      45,    46,    47,    48,    49,   106,    50,    51,    52,    53,
+      54,    42,     0,    55,     0,     0,    59,     0,     0,     0,
+       0,     0,     0,     0,     0,    43,    44,    45,    46,    47,
+      48,    49,    42,    50,    51,    52,    53,    54,     0,     0,
+      55,     0,     0,    63,     0,     0,    43,    44,    45,    46,
+      47,    48,    49,     0,    50,    51,    52,    53,    54,    42,
+       0,    55,     0,     0,    88,     0,     0,     0,     0,     0,
+       0,     0,     0,    43,    44,    45,    46,    47,    48,    49,
+      42,    50,    51,    52,    53,    54,     0,     0,    55,    97,
+       0,     0,     0,     0,    43,    44,    45,    46,    47,    48,
+      49,    42,    50,    51,    52,    53,    54,     0,     0,    55,
+       0,     0,     0,     0,     0,    43,    44,    45,    46,    47,
+      48,    49,    42,    50,    51,    52,    53,    54,     0,     0,
+      55,     0,     0,     0,     0,     0,    42,    44,    45,    46,
+      47,    48,    49,     0,    50,    51,    52,    53,    54,     0,
+       0,    55,    45,    46,    47,    48,    49,     0,    50,    51,
+      52,    53,    54,     0,     0,    55
 };
 
 static const yytype_int8 yycheck[] =
 {
-       3,     4,     3,     6,     7,     8,     4,    38,     6,     7,
-       8,     0,     1,     4,    -1,    -1,    19,    -1,    21,    -1,
-      21,    19,    13,    13,    31,    32,    33,    34,    35,    32,
-      20,    38,    -1,    -1,    32,    25,    26,    27,    28,    29,
-      13,    31,    32,    33,    34,    35,    -1,    -1,    38,    -1,
-      -1,    -1,    25,    26,    27,    28,    29,    -1,    31,    32,
-      33,    34,    35,    -1,    10,    38,    12,    33,    34,    35,
-      -1,    -1,    38,    -1,    20,    21,    22,    23,    24,    25,
-      26,    27,    28,    29,    30,    31
+      11,    12,    26,     4,    15,     3,    17,    10,    19,     5,
+       0,     1,     5,     4,     5,     6,     7,     8,     9,    20,
+      31,    12,    42,    14,    35,    16,    17,    25,    23,     5,
+      21,    42,    23,    20,    45,    46,    47,    48,    49,    50,
+      51,    52,    53,    54,    55,    36,    35,    36,    37,    38,
+      39,    62,    11,    42,    65,    66,     3,     4,     5,     6,
+       7,     8,     9,    10,    24,    12,    19,    14,    10,    16,
+      17,     9,    11,    87,    21,    93,    23,    88,    25,     4,
+       5,     6,     7,     8,    -1,    98,    97,    -1,    -1,    36,
+       3,     4,     5,     6,     7,     8,     9,    10,    23,    12,
+      -1,    14,    -1,    16,    17,    -1,    -1,    -1,    21,    -1,
+      23,    36,    25,     3,     4,     5,     6,     7,     8,     9,
+      -1,    -1,    12,    36,    14,    -1,    16,    17,    78,    -1,
+      -1,    21,    11,    23,    13,    25,    86,    37,    38,    39,
+      -1,    -1,    42,    93,    -1,    -1,    36,    -1,    27,    28,
+      29,    30,    31,    32,    33,   105,    35,    36,    37,    38,
+      39,    13,    -1,    42,    -1,    -1,    18,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    27,    28,    29,    30,    31,
+      32,    33,    13,    35,    36,    37,    38,    39,    -1,    -1,
+      42,    -1,    -1,    24,    -1,    -1,    27,    28,    29,    30,
+      31,    32,    33,    -1,    35,    36,    37,    38,    39,    13,
+      -1,    42,    -1,    -1,    18,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    27,    28,    29,    30,    31,    32,    33,
+      13,    35,    36,    37,    38,    39,    -1,    -1,    42,    22,
+      -1,    -1,    -1,    -1,    27,    28,    29,    30,    31,    32,
+      33,    13,    35,    36,    37,    38,    39,    -1,    -1,    42,
+      -1,    -1,    -1,    -1,    -1,    27,    28,    29,    30,    31,
+      32,    33,    13,    35,    36,    37,    38,    39,    -1,    -1,
+      42,    -1,    -1,    -1,    -1,    -1,    13,    28,    29,    30,
+      31,    32,    33,    -1,    35,    36,    37,    38,    39,    -1,
+      -1,    42,    29,    30,    31,    32,    33,    -1,    35,    36,
+      37,    38,    39,    -1,    -1,    42
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    40,    42,     0,     1,     3,     4,     6,     7,     8,
-      19,    21,    32,    41,    43,    44,    44,    43,    43,    44,
-      13,    25,    26,    27,    28,    29,    31,    32,    33,    34,
-      35,    38,    20,    43,    43,    43,    43,    43,    43,    43,
-      43,    43,    43,    43,    43
+       0,    44,    46,     0,     1,     3,     4,     5,     6,     7,
+       8,     9,    12,    14,    16,    17,    21,    23,    25,    36,
+      45,    47,    48,    49,    50,    51,    53,    54,    57,    66,
+      66,    26,     5,    47,    47,    59,     5,    47,     5,    47,
+      47,    66,    13,    27,    28,    29,    30,    31,    32,    33,
+      35,    36,    37,    38,    39,    42,    10,    47,    11,    18,
+      47,    23,    20,    24,    47,    62,    63,    47,    47,    47,
+      47,    47,    47,    47,    47,    47,    47,    47,    61,     5,
+      60,    58,    47,    47,    47,    46,    11,    24,    18,    65,
+      46,    45,    47,    19,    52,    10,    10,    22,    56,    46,
+      51,    47,    59,    64,    55,    11,    46,    10
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    39,    40,    40,    41,    42,    42,    42,    43,    43,
-      43,    43,    43,    43,    43,    43,    43,    43,    43,    43,
-      43,    43,    43,    43,    43,    43,    44,    44
+       0,    43,    44,    44,    45,    45,    45,    45,    45,    45,
+      45,    46,    46,    46,    47,    47,    47,    47,    47,    47,
+      47,    47,    47,    47,    47,    47,    47,    47,    47,    47,
+      47,    47,    47,    47,    47,    48,    49,    49,    50,    51,
+      52,    52,    52,    53,    55,    54,    56,    56,    57,    58,
+      59,    60,    61,    62,    63,    64,    65,    66,    66
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     1,     3,     1,     0,     2,     3,     1,     1,
-       1,     1,     2,     3,     3,     3,     3,     3,     3,     3,
-       3,     3,     3,     3,     3,     3,     1,     1
+       0,     2,     1,     3,     1,     1,     1,     1,     1,     1,
+       1,     0,     2,     3,     1,     1,     1,     1,     1,     2,
+       3,     3,     3,     3,     3,     3,     3,     3,     3,     3,
+       4,     4,     3,     3,     3,     2,     3,     4,     2,     7,
+       0,     2,     2,     7,     0,    13,     0,     2,     7,     0,
+       0,     0,     0,     0,     0,     0,     0,     1,     1
 };
 
 
@@ -1277,184 +1391,457 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: stmtlist  */
-#line 54 "ekparser.y"
+#line 59 "ekparser.y"
                   { 
        DEBUG_PRINT("program stmt stat_end"); 
        CODEGEN(STOP);
        }
-#line 1286 "y.tab.c"
+#line 1400 "y.tab.c"
     break;
 
   case 3: /* program: program error stat_end  */
-#line 58 "ekparser.y"
+#line 63 "ekparser.y"
                                { DEBUG_PRINT("program error stat_end"); yyerrok; }
-#line 1292 "y.tab.c"
-    break;
-
-  case 4: /* stmt: expr  */
-#line 62 "ekparser.y"
-       { DEBUG_PRINT("stmt: expr"); 
-         CODEGEN(print);
-       }
-#line 1300 "y.tab.c"
-    break;
-
-  case 7: /* stmtlist: stmtlist stmt stat_end  */
-#line 69 "ekparser.y"
-                                 { DEBUG_PRINT("stmtlist: stmlist stmt"); }
-#line 1306 "y.tab.c"
-    break;
-
-  case 8: /* expr: NOOMBA  */
-#line 73 "ekparser.y"
-        { DEBUG_PRINT("expr: NUMBER"); 
-          double num = check_err(strtod((yyvsp[0].tok).start, NULL));
-          void * data = write_constant(CREATE_NUM(num));
-          CODEGEN2(constpush, data);
-        }
-#line 1316 "y.tab.c"
-    break;
-
-  case 9: /* expr: OOTO  */
-#line 79 "ekparser.y"
-          { DEBUG_PRINT("expr: OOTO");
-            CODEGEN(ooto);
-          }
-#line 1324 "y.tab.c"
-    break;
-
-  case 10: /* expr: IRO  */
-#line 83 "ekparser.y"
-          { DEBUG_PRINT("expr: IRO");
-            CODEGEN(iro);
-          }
-#line 1332 "y.tab.c"
-    break;
-
-  case 11: /* expr: ORO  */
-#line 88 "ekparser.y"
-         {
-            Objstring * string = make_string((yyvsp[0].tok).start+1, (yyvsp[0].tok).length - 2);
-            void * data = write_constant(CREATE_STR(string));
-            CODEGEN2(constpush, data);
-          }
-#line 1342 "y.tab.c"
-    break;
-
-  case 12: /* expr: MINUS expr  */
-#line 95 "ekparser.y"
-        { DEBUG_PRINT("expr: MINUS expr");
-          CODEGEN(neg);
-        }
-#line 1350 "y.tab.c"
-    break;
-
-  case 13: /* expr: expr PLUS expr  */
-#line 99 "ekparser.y"
-        { DEBUG_PRINT("expr: expr + expr");
-          CODEGEN(add);
-        }
-#line 1358 "y.tab.c"
-    break;
-
-  case 14: /* expr: expr GTEQ expr  */
-#line 103 "ekparser.y"
-        { DEBUG_PRINT("expr: expr >= expr");
-          CODEGEN(ge);
-        }
-#line 1366 "y.tab.c"
-    break;
-
-  case 15: /* expr: expr GT expr  */
-#line 107 "ekparser.y"
-        { DEBUG_PRINT("expr: expr > expr");
-          CODEGEN(gt);
-        }
-#line 1374 "y.tab.c"
-    break;
-
-  case 16: /* expr: expr LT expr  */
-#line 111 "ekparser.y"
-        { DEBUG_PRINT("expr: expr < expr");
-          CODEGEN(lt);
-        }
-#line 1382 "y.tab.c"
-    break;
-
-  case 17: /* expr: expr EQEQ expr  */
-#line 115 "ekparser.y"
-        { DEBUG_PRINT("expr: expr == expr");
-          CODEGEN(eq);
-        }
-#line 1390 "y.tab.c"
-    break;
-
-  case 18: /* expr: expr DOGBA expr  */
-#line 119 "ekparser.y"
-          { DEBUG_PRINT("expr: expr DOGBA expr ");
-            CODEGEN(eq);
-          }
-#line 1398 "y.tab.c"
-    break;
-
-  case 19: /* expr: expr LTEQ expr  */
-#line 123 "ekparser.y"
-        { DEBUG_PRINT("expr: expr <= expr");
-          CODEGEN(le);
-        }
 #line 1406 "y.tab.c"
     break;
 
-  case 20: /* expr: expr MINUS expr  */
-#line 127 "ekparser.y"
-        { DEBUG_PRINT("expr: expr - expr"); 
-          CODEGEN(sub);
-        }
+  case 4: /* stmt: expr  */
+#line 67 "ekparser.y"
+       { DEBUG_PRINT("stmt: expr"); 
+         CODEGEN(pop);
+       }
 #line 1414 "y.tab.c"
     break;
 
-  case 21: /* expr: expr ASTERISK expr  */
-#line 131 "ekparser.y"
-        { DEBUG_PRINT("expr: expr * expr"); 
-          CODEGEN(mul);
-        }
-#line 1422 "y.tab.c"
+  case 5: /* stmt: assignstmt  */
+#line 71 "ekparser.y"
+       { DEBUG_PRINT("stmt: assignstmt"); }
+#line 1420 "y.tab.c"
     break;
 
-  case 22: /* expr: expr SLASH expr  */
-#line 135 "ekparser.y"
-        { DEBUG_PRINT("expr: expr / expr"); 
-          CODEGEN(divide);
-        }
-#line 1430 "y.tab.c"
+  case 6: /* stmt: ifstmt  */
+#line 73 "ekparser.y"
+       { DEBUG_PRINT("stmt: ifstmt"); }
+#line 1426 "y.tab.c"
     break;
 
-  case 23: /* expr: expr CARET expr  */
-#line 139 "ekparser.y"
-        { DEBUG_PRINT("expr: expr ^ expr"); 
-          CODEGEN(power);
-        }
+  case 7: /* stmt: printstmt  */
+#line 75 "ekparser.y"
+       { DEBUG_PRINT("stmt: printstmt"); }
+#line 1432 "y.tab.c"
+    break;
+
+  case 8: /* stmt: whilestmt  */
+#line 77 "ekparser.y"
+       { DEBUG_PRINT("stmt: whilestmt"); }
 #line 1438 "y.tab.c"
     break;
 
-  case 24: /* expr: expr MODULUS expr  */
-#line 142 "ekparser.y"
+  case 9: /* stmt: forstmt  */
+#line 78 "ekparser.y"
+                 {
+        DEBUG_PRINT("stmt: forstmt");}
+#line 1445 "y.tab.c"
+    break;
+
+  case 10: /* stmt: funcstmt  */
+#line 80 "ekparser.y"
+                  {
+         DEBUG_PRINT("stmt: funcstmt");
+       }
+#line 1453 "y.tab.c"
+    break;
+
+  case 11: /* stmtlist: %empty  */
+#line 86 "ekparser.y"
+                        { (yyval.ptr) =  code_get_count(&vm.instructions);}
+#line 1459 "y.tab.c"
+    break;
+
+  case 13: /* stmtlist: stmtlist stmt stat_end  */
+#line 88 "ekparser.y"
+                                 { DEBUG_PRINT("stmtlist: stmlist stmt"); }
+#line 1465 "y.tab.c"
+    break;
+
+  case 14: /* expr: NOOMBA  */
+#line 92 "ekparser.y"
+        { DEBUG_PRINT("expr: NUMBER"); 
+          double num = check_err(strtod((yyvsp[0].tok).start, NULL));
+          void * data = write_constant(CREATE_NUM(num));
+          (yyval.ptr) = CODEGEN2(constpush, data);
+        }
+#line 1475 "y.tab.c"
+    break;
+
+  case 15: /* expr: OOTO  */
+#line 98 "ekparser.y"
+          { DEBUG_PRINT("expr: OOTO");
+            (yyval.ptr) = CODEGEN(ooto);
+          }
+#line 1483 "y.tab.c"
+    break;
+
+  case 16: /* expr: IRO  */
+#line 102 "ekparser.y"
+          { DEBUG_PRINT("expr: IRO");
+            (yyval.ptr) = CODEGEN(iro);
+          }
+#line 1491 "y.tab.c"
+    break;
+
+  case 17: /* expr: IDENT  */
+#line 105 "ekparser.y"
+                {
+            DEBUG_PRINT("expr: IDENT");
+            Objstring * string = make_string((yyvsp[0].tok).start, (yyvsp[0].tok).length);
+            void * data = write_constant(CREATE_STR(string));
+            (yyval.ptr) = CODEGEN2(gvarpush, data);
+          }
+#line 1502 "y.tab.c"
+    break;
+
+  case 18: /* expr: ORO  */
+#line 113 "ekparser.y"
+         {
+            DEBUG_PRINT("expr: ORO");
+            Objstring * string = make_string((yyvsp[0].tok).start+1, (yyvsp[0].tok).length - 2);
+            void * data = write_constant(CREATE_STR(string));
+            (yyval.ptr) = CODEGEN2(constpush, data);
+          }
+#line 1513 "y.tab.c"
+    break;
+
+  case 19: /* expr: MINUS expr  */
+#line 121 "ekparser.y"
+        { DEBUG_PRINT("expr: MINUS expr");
+          CODEGEN(neg);
+        }
+#line 1521 "y.tab.c"
+    break;
+
+  case 20: /* expr: expr PLUS expr  */
+#line 125 "ekparser.y"
+        { DEBUG_PRINT("expr: expr + expr");
+          CODEGEN(add);
+        }
+#line 1529 "y.tab.c"
+    break;
+
+  case 21: /* expr: expr GTEQ expr  */
+#line 129 "ekparser.y"
+        { DEBUG_PRINT("expr: expr >= expr");
+          CODEGEN(ge);
+        }
+#line 1537 "y.tab.c"
+    break;
+
+  case 22: /* expr: expr GT expr  */
+#line 133 "ekparser.y"
+        { DEBUG_PRINT("expr: expr > expr");
+          CODEGEN(gt);
+        }
+#line 1545 "y.tab.c"
+    break;
+
+  case 23: /* expr: expr LT expr  */
+#line 137 "ekparser.y"
+        { DEBUG_PRINT("expr: expr < expr");
+          CODEGEN(lt);
+        }
+#line 1553 "y.tab.c"
+    break;
+
+  case 24: /* expr: expr EQEQ expr  */
+#line 141 "ekparser.y"
+        { DEBUG_PRINT("expr: expr == expr");
+          CODEGEN(eq);
+        }
+#line 1561 "y.tab.c"
+    break;
+
+  case 25: /* expr: expr DOGBA expr  */
+#line 145 "ekparser.y"
+          { DEBUG_PRINT("expr: expr DOGBA expr ");
+            CODEGEN(eq);
+          }
+#line 1569 "y.tab.c"
+    break;
+
+  case 26: /* expr: expr LTEQ expr  */
+#line 149 "ekparser.y"
+        { DEBUG_PRINT("expr: expr <= expr");
+          CODEGEN(le);
+        }
+#line 1577 "y.tab.c"
+    break;
+
+  case 27: /* expr: expr MINUS expr  */
+#line 153 "ekparser.y"
+        { DEBUG_PRINT("expr: expr - expr"); 
+          CODEGEN(sub);
+        }
+#line 1585 "y.tab.c"
+    break;
+
+  case 28: /* expr: expr ASTERISK expr  */
+#line 157 "ekparser.y"
+        { DEBUG_PRINT("expr: expr * expr"); 
+          CODEGEN(mul);
+        }
+#line 1593 "y.tab.c"
+    break;
+
+  case 29: /* expr: expr SLASH expr  */
+#line 161 "ekparser.y"
+        { DEBUG_PRINT("expr: expr / expr"); 
+          CODEGEN(divide);
+        }
+#line 1601 "y.tab.c"
+    break;
+
+  case 30: /* expr: expr ATI andpatch expr  */
+#line 164 "ekparser.y"
+                                 {
+            /* if expr is true jump to evaluate next expr */
+            vm.instructions.data[(yyvsp[-1].ptr)+1] = (void *) (yyvsp[0].ptr);
+            /* if expr is false jmp to the end of the production */
+            vm.instructions.data[(yyvsp[-1].ptr)+2] = (void *) code_get_count(&vm.instructions);
+        }
+#line 1612 "y.tab.c"
+    break;
+
+  case 31: /* expr: expr TABI orpatch expr  */
+#line 170 "ekparser.y"
+                                 {
+            /* patch if expr is true jump to the end of the rule */
+            vm.instructions.data[(yyvsp[-1].ptr)+1] = (void *) code_get_count(&vm.instructions);
+            /* if expr is false jump to the next expr */
+            vm.instructions.data[(yyvsp[-1].ptr)+2] = (void *) (yyvsp[0].ptr);
+        }
+#line 1623 "y.tab.c"
+    break;
+
+  case 32: /* expr: expr CARET expr  */
+#line 177 "ekparser.y"
+        { DEBUG_PRINT("expr: expr ^ expr"); 
+          CODEGEN(power);
+        }
+#line 1631 "y.tab.c"
+    break;
+
+  case 33: /* expr: expr MODULUS expr  */
+#line 180 "ekparser.y"
                             { 
         DEBUG_PRINT("expr: expr %% expr"); 
         CODEGEN(mod);
         }
-#line 1447 "y.tab.c"
+#line 1640 "y.tab.c"
     break;
 
-  case 25: /* expr: LPAR expr RPAR  */
-#line 147 "ekparser.y"
+  case 34: /* expr: LPAR expr RPAR  */
+#line 185 "ekparser.y"
         { DEBUG_PRINT("expr: (expr)"); 
-          (yyval.ptr) = (yyvsp[-1].ptr);}
-#line 1454 "y.tab.c"
+          (yyval.ptr) = (yyvsp[-1].ptr);
+         }
+#line 1648 "y.tab.c"
+    break;
+
+  case 35: /* printstmt: SOPE expr  */
+#line 190 "ekparser.y"
+                     {
+         DEBUG_PRINT("printstmt: SOPE expr");
+         CODEGEN(print);
+         (yyval.ptr) = (yyvsp[0].ptr);
+         }
+#line 1658 "y.tab.c"
+    break;
+
+  case 36: /* assignstmt: IDENT EQ expr  */
+#line 197 "ekparser.y"
+                           {
+          DEBUG_PRINT("assignstmt:\
+          IDENT EQ expr");
+           (yyval.ptr) = (yyvsp[0].ptr);
+           gen_var((yyvsp[-2].tok).start, (yyvsp[-2].tok).length);
+           }
+#line 1669 "y.tab.c"
+    break;
+
+  case 37: /* assignstmt: FI expr SI IDENT  */
+#line 204 "ekparser.y"
+           {
+           (yyval.ptr) = (yyvsp[-2].ptr);
+           gen_var((yyvsp[0].tok).start, (yyvsp[0].tok).length);
+           }
+#line 1678 "y.tab.c"
+    break;
+
+  case 38: /* ifstmt: ifblk PARI  */
+#line 210 "ekparser.y"
+                    {DEBUG_PRINT("ifstmt: ifblk PARI");}
+#line 1684 "y.tab.c"
+    break;
+
+  case 39: /* ifblk: TI expr SE ifpatch stmtlist elsepatch elsestmt  */
+#line 214 "ekparser.y"
+                                                      {
+
+      DEBUG_PRINT("ifblk: TI expr \
+        SE ifpatch stmtlist elsepatch elsestmt ");
+      //fix backpatch
+
+      vm.instructions.data[(yyvsp[-3].ptr) + 1] = (void *) (yyvsp[0].ptr);
+      /* printf("if patch: %ld %ld\n", $4, $7); */
+      vm.instructions.data[(yyvsp[-1].ptr)+1] = (void *) code_get_count(&vm.instructions);
+
+      /* printf("elsepatch: %ld %ld\n", $6, code_get_count(&vm.instructions)); */
+      (yyval.ptr) = (yyvsp[-5].ptr);
+      }
+#line 1702 "y.tab.c"
+    break;
+
+  case 40: /* elsestmt: %empty  */
+#line 229 "ekparser.y"
+                         {
+         DEBUG_PRINT("elsestmt: /*nothing*/");
+         (yyval.ptr) =  code_get_count(&vm.instructions); 
+        }
+#line 1711 "y.tab.c"
+    break;
+
+  case 41: /* elsestmt: BIBEEKO ifblk  */
+#line 233 "ekparser.y"
+                         { /* else if */
+         DEBUG_PRINT("elsestmt: BIBEEKO ifblk");
+         (yyval.ptr) = (yyvsp[0].ptr);
+         }
+#line 1720 "y.tab.c"
+    break;
+
+  case 42: /* elsestmt: BIBEEKO stmtlist  */
+#line 237 "ekparser.y"
+                            {
+         DEBUG_PRINT("elsestmt: BIBEEKO SE stmtlist");
+         (yyval.ptr) = (yyvsp[0].ptr);}
+#line 1728 "y.tab.c"
+    break;
+
+  case 43: /* whilestmt: NIGBATI loopatch expr loopatch2 SE stmtlist PARI  */
+#line 242 "ekparser.y"
+                                                            {
+         CODEGEN2(jmp, (void *) (yyvsp[-5].ptr));
+         vm.instructions.data[(yyvsp[-3].ptr)+1] = (void *) code_get_count(&vm.instructions);
+         (yyval.ptr) = (yyvsp[-5].ptr);
+}
+#line 1738 "y.tab.c"
+    break;
+
+  case 44: /* $@1: %empty  */
+#line 248 "ekparser.y"
+                                                              {
+        gen_var((yyvsp[-7].tok).start, (yyvsp[-7].tok).length);
+       }
+#line 1746 "y.tab.c"
+    break;
+
+  case 45: /* forstmt: FUN IDENT LATI expr SI expr ifikun loopatch forpatch $@1 SE stmtlist PARI  */
+#line 250 "ekparser.y"
+                          {
+       CODEGEN2(jmp, (void *) (yyvsp[-5].ptr));
+       vm.instructions.data[(yyvsp[-5].ptr)+1] = 
+           (void *) code_get_count(&vm.instructions);
+       (yyval.ptr) = (yyvsp[-9].ptr);
+}
+#line 1757 "y.tab.c"
+    break;
+
+  case 46: /* ifikun: %empty  */
+#line 257 "ekparser.y"
+                      { 
+      void * data = write_constant(CREATE_NUM(1));
+      (yyval.ptr) = CODEGEN2(constpush, data);
+      }
+#line 1766 "y.tab.c"
+    break;
+
+  case 47: /* ifikun: IFIKUN expr  */
+#line 261 "ekparser.y"
+                     {(yyval.ptr) = (yyvsp[0].ptr);
+      }
+#line 1773 "y.tab.c"
+    break;
+
+  case 48: /* funcstmt: ISE IDENT LPAR arglist RPAR stmt PARI  */
+#line 265 "ekparser.y"
+                                               {
+        DEBUG_PRINT("funcstmt: ISE IDENT LPAR \
+            arglist RPAR stmt PARI");
+        }
+#line 1782 "y.tab.c"
+    break;
+
+  case 50: /* loopatch: %empty  */
+#line 275 "ekparser.y"
+            {
+          (yyval.ptr) = code_get_count(&vm.instructions);
+          }
+#line 1790 "y.tab.c"
+    break;
+
+  case 51: /* loopatch2: %empty  */
+#line 280 "ekparser.y"
+            {
+          (yyval.ptr) = CODEGEN2(jz, NULL);
+          CODEGEN(pop);
+          }
+#line 1799 "y.tab.c"
+    break;
+
+  case 52: /* ifpatch: %empty  */
+#line 286 "ekparser.y"
+           {
+         DEBUG_PRINT("in if patch");
+         (yyval.ptr) =CODEGEN2(jz, NULL); 
+         CODEGEN(pop);}
+#line 1808 "y.tab.c"
+    break;
+
+  case 53: /* orpatch: %empty  */
+#line 292 "ekparser.y"
+           {
+         (yyval.ptr) = CODEGEN3(orjmp, NULL, NULL);
+         }
+#line 1816 "y.tab.c"
+    break;
+
+  case 54: /* andpatch: %empty  */
+#line 297 "ekparser.y"
+           {
+         (yyval.ptr) = CODEGEN3(andjmp, NULL, NULL);
+          }
+#line 1824 "y.tab.c"
+    break;
+
+  case 55: /* forpatch: %empty  */
+#line 302 "ekparser.y"
+          {
+        (yyval.ptr) =CODEGEN2(forloop, NULL);
+        }
+#line 1832 "y.tab.c"
+    break;
+
+  case 56: /* elsepatch: %empty  */
+#line 307 "ekparser.y"
+           {
+         DEBUG_PRINT("in elsepatch");
+         (yyval.ptr) = CODEGEN2(jmp, NULL); 
+         CODEGEN(pop);}
+#line 1841 "y.tab.c"
     break;
 
 
-#line 1458 "y.tab.c"
+#line 1845 "y.tab.c"
 
       default: break;
     }
@@ -1647,10 +2034,36 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 156 "ekparser.y"
+#line 317 "ekparser.y"
 
 
-/* yydebug = 1; */
+static void gen_var(const char * str, int length){
+         Objstring * string = 
+         make_string(str, length);
+             void * data = write_constant(
+         CREATE_STR(string));
+        CODEGEN2(gvarstore, data);
+}
+
+static void init_compiler(Compiler * compiler){
+    compiler->function = NULL;
+    compiler->local_count = 0;
+    compiler->scope_depth = 0;
+    current = compiler;
+}
+
+static void begin_scope(){
+    current->scope_depth++;
+}
+
+static void end_scope(){
+    current->scope_depth--;
+}
+
 void yyerror(char * message){
     EK_ERROR(ek_state.line_no, "%s", message);
+}
+
+int compiler(){
+
 }

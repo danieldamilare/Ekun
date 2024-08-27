@@ -39,7 +39,7 @@
 # define YY_YY_Y_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -68,28 +68,32 @@ extern int yydebug;
     NIGBATI = 269,                 /* NIGBATI  */
     PADA = 270,                    /* PADA  */
     ISE = 271,                     /* ISE  */
-    SI = 272,                      /* SI  */
-    BIBEEKO = 273,                 /* BIBEEKO  */
-    LPAR = 274,                    /* LPAR  */
-    RPAR = 275,                    /* RPAR  */
-    SEMI = 276,                    /* SEMI  */
-    EQ = 277,                      /* EQ  */
-    TABI = 278,                    /* TABI  */
-    ATI = 279,                     /* ATI  */
-    GT = 280,                      /* GT  */
-    GTEQ = 281,                    /* GTEQ  */
-    LT = 282,                      /* LT  */
-    LTEQ = 283,                    /* LTEQ  */
-    EQEQ = 284,                    /* EQEQ  */
-    NEQ = 285,                     /* NEQ  */
-    PLUS = 286,                    /* PLUS  */
-    MINUS = 287,                   /* MINUS  */
-    ASTERISK = 288,                /* ASTERISK  */
-    SLASH = 289,                   /* SLASH  */
-    MODULUS = 290,                 /* MODULUS  */
-    UNARYMINUS = 291,              /* UNARYMINUS  */
-    NOT = 292,                     /* NOT  */
-    CARET = 293                    /* CARET  */
+    SOPE = 272,                    /* SOPE  */
+    SI = 273,                      /* SI  */
+    BIBEEKO = 274,                 /* BIBEEKO  */
+    LATI = 275,                    /* LATI  */
+    FUN = 276,                     /* FUN  */
+    IFIKUN = 277,                  /* IFIKUN  */
+    LPAR = 278,                    /* LPAR  */
+    RPAR = 279,                    /* RPAR  */
+    SEMI = 280,                    /* SEMI  */
+    EQ = 281,                      /* EQ  */
+    TABI = 282,                    /* TABI  */
+    ATI = 283,                     /* ATI  */
+    GT = 284,                      /* GT  */
+    GTEQ = 285,                    /* GTEQ  */
+    LT = 286,                      /* LT  */
+    LTEQ = 287,                    /* LTEQ  */
+    EQEQ = 288,                    /* EQEQ  */
+    NEQ = 289,                     /* NEQ  */
+    PLUS = 290,                    /* PLUS  */
+    MINUS = 291,                   /* MINUS  */
+    ASTERISK = 292,                /* ASTERISK  */
+    SLASH = 293,                   /* SLASH  */
+    MODULUS = 294,                 /* MODULUS  */
+    UNARYMINUS = 295,              /* UNARYMINUS  */
+    NOT = 296,                     /* NOT  */
+    CARET = 297                    /* CARET  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -112,39 +116,43 @@ extern int yydebug;
 #define NIGBATI 269
 #define PADA 270
 #define ISE 271
-#define SI 272
-#define BIBEEKO 273
-#define LPAR 274
-#define RPAR 275
-#define SEMI 276
-#define EQ 277
-#define TABI 278
-#define ATI 279
-#define GT 280
-#define GTEQ 281
-#define LT 282
-#define LTEQ 283
-#define EQEQ 284
-#define NEQ 285
-#define PLUS 286
-#define MINUS 287
-#define ASTERISK 288
-#define SLASH 289
-#define MODULUS 290
-#define UNARYMINUS 291
-#define NOT 292
-#define CARET 293
+#define SOPE 272
+#define SI 273
+#define BIBEEKO 274
+#define LATI 275
+#define FUN 276
+#define IFIKUN 277
+#define LPAR 278
+#define RPAR 279
+#define SEMI 280
+#define EQ 281
+#define TABI 282
+#define ATI 283
+#define GT 284
+#define GTEQ 285
+#define LT 286
+#define LTEQ 287
+#define EQEQ 288
+#define NEQ 289
+#define PLUS 290
+#define MINUS 291
+#define ASTERISK 292
+#define SLASH 293
+#define MODULUS 294
+#define UNARYMINUS 295
+#define NOT 296
+#define CARET 297
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 30 "ekparser.y"
+#line 33 "ekparser.y"
 
     Token tok;
-    void  ** ptr;
+    long int ptr;
 
-#line 148 "y.tab.h"
+#line 156 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

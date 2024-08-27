@@ -25,10 +25,11 @@ typedef struct code{
     Codeline * lines;
 } Code;             
 
-void ** code_append(Code * array, void * data, int line);
+int code_append(Code * array, void * data, int line);
 void code_free(Code * array);
 void code_init(Code * array);
 int get_codeline(Code * array, int offset);
 void * store_constant(Code * array, Lval value);
+intptr_t code_get_count(Code * array);
 
 #endif

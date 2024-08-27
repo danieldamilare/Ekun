@@ -20,6 +20,13 @@ typedef struct _vm {
     Symbol globals;
 } VM;
 
+typedef struct {
+    Objfunc * function;
+    Lval * slots;
+    void ** pc;
+
+} Call_frame;
+
 extern VM vm;
 
 void push(Lval val);

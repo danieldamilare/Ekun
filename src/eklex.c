@@ -162,14 +162,26 @@ Token token_identifier(char * word){
 
         case 'n': return check_keyword(word+1, "igbati", NIGBATI);
         case 'd': return check_keyword(word+1, "ogba", DOGBA);
-        case 'f': return check_keyword(word+1, "i", FI);
+        case 'f': 
+                  switch(word[1]){
+                      case 'i':
+                          if(strlen(word) == 2)
+                              return initialize_token(FI);
+                          else 
+                              return initialize_token(IDENT);
+                      case 'u':
+                          return check_keyword(word+2, "n", FUN);
+                  }
+                  break;
         case 'a': return check_keyword(word+1, "ti", ATI);
+                  break;
         case 'o': return check_keyword(word+1, "oto", OOTO);
 
         case 'i': 
                   switch(word[1]){
                       case 'r': return check_keyword(word+2, "o", IRO);
                       case 's': return check_keyword(word+2, "e", ISE);
+                      case 'f': return check_keyword(word+2, "ikun", IFIKUN);
                       default: return initialize_token(IDENT);
                   }
                   break;
@@ -188,15 +200,21 @@ Token token_identifier(char * word){
                               return initialize_token(SE);
                           else
                               return initialize_token(IDENT);
+                      case 'o': return check_keyword(word+2, "pe", SOPE);
                      default:
                           return initialize_token(IDENT);
                   }
                   break;
+        case 'l': 
+                  return check_keyword(word+1, "ati", LATI);
 
         default:
                   return initialize_token(IDENT);
+                  break;
     }
+                  return initialize_token(IDENT);
 }
+
 
 Token token_ident(void){
     while(ek_isalpha(peek()) || isdigit(peek()))
@@ -264,6 +282,9 @@ void print_type(int type){
             break;
         case FI:
             printf("FI");
+            break;
+        case IFIKUN:
+            printf("IFIKUN");
             break;
         case SE:
             printf("SE");
