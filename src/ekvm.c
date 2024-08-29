@@ -13,6 +13,8 @@
 IMPLEMENT_DARRAY(Lval, Stack, stack)
 
 VM vm;
+
+#define VM_STACK_TOP (&vm.stack.data[vm.stack.count -1])
                                                         
 /* pop current value from stack  */
 Lval pop(void){
@@ -20,7 +22,8 @@ Lval pop(void){
     //>todo Update error handling
     if(vm.stack.count <= 0){
         fprintf(stderr, "Error: Stack underflow\n");
-        exit(1);
+        // exit(1);
+        abort();
     }
 
     vm.stack.count--;
@@ -30,6 +33,7 @@ Lval pop(void){
 void push(Lval val){
     stack_append(&vm.stack, val);
 }
+
 
 Lval peek(int i){
     return vm.stack.data[vm.stack.count - 1 -i];
@@ -41,16 +45,25 @@ void vm_init(void){
     init_table(&vm.globals);
     init_table(&vm.strings);
     vm.objects = NULL;
+    vm.fp = vm.frame;
 }
 
 static void free_objects(){
     for(Object * obj = vm.objects; obj != NULL;){
         Object * next = obj->next;
-        free(obj);
+        switch(obj->type){
+            case OBJ_FUNC:
+                free((Objfunc *) obj);
+                break;
+            case OBJ_BLTIN:
+                free((Objbltin *) obj);
+                break;
+            default:
+                free(obj);
+        }
         obj = next;
     }
 }
-
 
 void vm_cleanup(void){
     stack_free(&vm.stack);
@@ -60,21 +73,41 @@ void vm_cleanup(void){
     free_entries(&vm.strings);
 }
 
+static void add_builtin(const char * name, bltin_func function){
+    push(CREATE_OBJ(make_string(name, strlen(name))));
+    push(CREATE_OBJ(make_bltin(function)));
+    table_put(&vm.globals, GET_STR(peek(1)), peek(0));
+    pop();
+    pop();
+}
+
 intptr_t write_code(void * data, int line){
     return code_append(&vm.instructions, data, line);
 }
 
 void execute(void ** instructions){
-    vm.pc = instructions;
-    for(; *vm.pc != NULL; ){
-        Opfunc function = *vm.pc++;
+    vm.fp->pc = instructions;
+    Opfunc function;
+
+    for(; *vm.fp->pc != NULL; ){
+        function = *(vm.fp->pc)++;
         function();
     }
 }
 
+void vm_run(void){
+    //iniitialize the starting function.
+    Objfunc * function = make_func();
+    function->start_address = 0; //initial bytecode starts at zero address
+    vm.fp->slots = 0;
+    vm.fp->pc = vm.instructions.data;
+    vm.fp->function =  function;
+    execute(vm.instructions.data);
+}
+
 void * vm_advance(void){
-    void * data = *vm.pc;
-    vm.pc++;
+    void * data = *vm.fp->pc;
+    vm.fp->pc++;
     return data;
 }
 
@@ -109,11 +142,6 @@ static void concat_string(void){
     push(CREATE_STR(new_str));
 }
 
-void vm_run(void){
-    vm.progbase = vm.instructions.data;
-    execute(vm.progbase);
-}
-
 void constpush(void){
     Lval  val = * (Lval *) vm_advance();
     push(val);
@@ -144,7 +172,7 @@ void jz(void){
     /* printf("condition is %s\n", is_false(peek(0))? "false": "true"); */
     if (is_false(peek(0))){
         /* printf("condition is 0... skipping\n"); */
-        vm.pc = &vm.instructions.data[num];
+        vm.fp->pc = &vm.instructions.data[num];
     }
 }
 
@@ -152,18 +180,18 @@ void jz(void){
 void jmp(void){
     intptr_t num = (intptr_t) vm_advance();
     /* printf("regained patch: patch is now: %ld\n", num); */
-    vm.pc = &vm.instructions.data[num];
+    vm.fp->pc = &vm.instructions.data[num];
 }
 
 void andjmp(void){
     intptr_t expr_true = (intptr_t) vm_advance();
     intptr_t expr_false = (intptr_t) vm_advance();
     if(is_false(peek(0))){ //leave the value on the stack as the result of the expr
-        vm.pc = &vm.instructions.data[expr_false];
+        vm.fp->pc = &vm.instructions.data[expr_false];
     } else {  
     //if true we need to evaluate the next value and use as the result of the expr
         pop();
-        vm.pc = &vm.instructions.data[expr_true];
+        vm.fp->pc = &vm.instructions.data[expr_true];
     }
 }
 
@@ -173,9 +201,9 @@ void orjmp(void){
 
     if(is_false(peek(0))){ //
         pop();
-        vm.pc = &vm.instructions.data[expr_false];
+        vm.fp->pc = &vm.instructions.data[expr_false];
     } else{ //leave the value on the stack as the result of the expr
-        vm.pc= &vm.instructions.data[expr_true];
+        vm.fp->pc= &vm.instructions.data[expr_true];
     }
 
 }
@@ -187,13 +215,69 @@ void forloop(void){
     double num2 = GET_NUM(peek(1));
     double num1 = GET_NUM(peek(2));
     if(num1 > num2){
-        vm.pc = &vm.instructions.data[jmp_addr];
+        vm.fp->pc = &vm.instructions.data[jmp_addr];
     } else {
         push(CREATE_NUM(num1));
         num1 += incr;
         vm.stack.data[vm.stack.count -4] = CREATE_NUM(num1);
     }
 }
+
+static void callval(Objfunc * function, int arg_count){
+
+    if(function->arity != arg_count){
+        EK_ERROR(get_err_no(), "function: %s takes %d %s"                "instead of %d",
+        GET_CHAR(function->name), function->arity,
+        function->arity == 1? "argument": "arguments" , arg_count);
+    }
+    //initialize Call frame
+    //check for stack overflow
+    if(vm.fp+1 >= &vm.frame[NFRAME]){
+        EK_ERROR(get_err_no(), "Stack Overflow");
+        exit(1);
+    }
+    Call_frame * fp = ++vm.fp;
+    fp->function = function;
+    fp->slots = vm.stack.count - arg_count;
+    fp->pc = &vm.instructions.data[function->start_address];
+}
+
+void call(void){
+    int arg_count = (intptr_t) vm_advance();
+    Lval val = peek(arg_count);
+    if(CHECK_TYPE(val, LVAL_OBJ)){
+        switch(val.val.obj->type){
+            case OBJ_FUNC:
+                callval(GET_FUNC(val), arg_count);
+                return;
+
+            case OBJ_BLTIN:
+            {
+                bltin_func function = GET_BLTIN(val);
+                Lval value =function(arg_count,
+                        VM_STACK_TOP - arg_count);
+                vm.stack.count -= arg_count -1; //reset the stack minus 1 to remove the function on the stack
+                push(value);
+                return;
+           }
+
+            default:
+                break;
+        }
+    }
+    EK_ERROR(get_err_no(), "Can only call function type ");
+    exit(1);
+}
+
+
+void ret(void){
+    Lval  result = pop();
+    //pop all locals from stack and store return value
+    vm.stack.count = vm.fp->slots - 1; 
+    push(result);
+    vm.fp--;
+}
+
 
 /* binary operation */
 
@@ -209,7 +293,7 @@ void divide(void){
     double num2 = GET_NUM(pop());
     double num1 = GET_NUM(pop());
     if(num2 == 0){
-        EK_ERROR(ek_state.line_no, "error trying to divide by zero");
+        EK_ERROR(get_err_no(), "error trying to divide by zero");
     }
     push(CREATE_NUM(num1/num2));
 }
@@ -219,7 +303,7 @@ void mod(void){
     double num2 = GET_NUM(pop());
     double num1 = GET_NUM(pop());
     if(num2 == 0){
-        EK_ERROR(ek_state.line_no, "error trying to divide by zero");
+        EK_ERROR(get_err_no(), "error trying to divide by zero");
     }
     long quotient = (long)(num1) / (long)(num2);
     double remainder = num1 - quotient * num2;
@@ -246,8 +330,7 @@ void add(void){
     double num1 = GET_NUM(pop());
     push(CREATE_NUM(num1 + num2));
     }
-    else if(CHECK_TYPE(*peek(0).val.obj, OBJ_STRING) &&
-            CHECK_TYPE(*peek(1).val.obj, OBJ_STRING)){
+    else if(IS_STR(peek(0)) && IS_STR(peek(1))){
         concat_string();
     }
 }
@@ -350,6 +433,11 @@ void print(void){
                 case OBJ_FUNC:
                     printf("<ise %s>\n", ((Objfunc *) obj)->name->ch);
                     break;
+                case OBJ_BLTIN:
+                    printf("<ise abawa >\n");
+                    break;
+                default:
+                    break;
             }
                         
             }
@@ -364,7 +452,7 @@ void * write_constant(Lval value){
 int get_err_no(void){
     // the program counter is pointing to the next instruction
     // so we subtract one to get the distance from the program base
-    int offset = vm.pc -vm.instructions.data -1;
+    int offset = vm.fp->pc -vm.instructions.data -1;
     return get_codeline(&vm.instructions, offset);
 }
 

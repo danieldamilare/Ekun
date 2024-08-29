@@ -9,7 +9,7 @@ void yyerror(char *);
 
 
 typedef struct Local {
-    Token name; 
+    Token * name; 
     int depth;
 } Local;
 
@@ -26,6 +26,6 @@ typedef struct Compiler {
     int scope_depth;
 } Compiler;
 
-extern Compiler * current;
+extern Compiler  current;
 
 #endif

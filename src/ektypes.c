@@ -35,6 +35,12 @@ Objfunc * make_func(){
     return func;
 }
 
+Objbltin * make_bltin(bltin_func function){
+    Objbltin * func = (Objbltin *) make_obj(sizeof(*func), OBJ_BLTIN);
+    func->function  = function;
+    return func;
+}
+
 static bool is_false_obj(Object * obj){
 
     switch(obj->type){
@@ -43,6 +49,7 @@ static bool is_false_obj(Object * obj){
             return ((Objstring *) obj)->length == 0;
         }
         case OBJ_FUNC:
+        case OBJ_BLTIN:
             return false;
     }
     return false;

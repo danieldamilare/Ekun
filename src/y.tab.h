@@ -74,26 +74,29 @@ extern int yydebug;
     LATI = 275,                    /* LATI  */
     FUN = 276,                     /* FUN  */
     IFIKUN = 277,                  /* IFIKUN  */
-    LPAR = 278,                    /* LPAR  */
-    RPAR = 279,                    /* RPAR  */
-    SEMI = 280,                    /* SEMI  */
-    EQ = 281,                      /* EQ  */
-    TABI = 282,                    /* TABI  */
-    ATI = 283,                     /* ATI  */
-    GT = 284,                      /* GT  */
-    GTEQ = 285,                    /* GTEQ  */
-    LT = 286,                      /* LT  */
-    LTEQ = 287,                    /* LTEQ  */
-    EQEQ = 288,                    /* EQEQ  */
-    NEQ = 289,                     /* NEQ  */
-    PLUS = 290,                    /* PLUS  */
-    MINUS = 291,                   /* MINUS  */
-    ASTERISK = 292,                /* ASTERISK  */
-    SLASH = 293,                   /* SLASH  */
-    MODULUS = 294,                 /* MODULUS  */
-    UNARYMINUS = 295,              /* UNARYMINUS  */
-    NOT = 296,                     /* NOT  */
-    CARET = 297                    /* CARET  */
+    PE = 278,                      /* PE  */
+    COLON = 279,                   /* COLON  */
+    LPAR = 280,                    /* LPAR  */
+    RPAR = 281,                    /* RPAR  */
+    SEMI = 282,                    /* SEMI  */
+    COMMA = 283,                   /* COMMA  */
+    EQ = 284,                      /* EQ  */
+    TABI = 285,                    /* TABI  */
+    ATI = 286,                     /* ATI  */
+    GT = 287,                      /* GT  */
+    GTEQ = 288,                    /* GTEQ  */
+    LT = 289,                      /* LT  */
+    LTEQ = 290,                    /* LTEQ  */
+    EQEQ = 291,                    /* EQEQ  */
+    NEQ = 292,                     /* NEQ  */
+    PLUS = 293,                    /* PLUS  */
+    MINUS = 294,                   /* MINUS  */
+    ASTERISK = 295,                /* ASTERISK  */
+    SLASH = 296,                   /* SLASH  */
+    MODULUS = 297,                 /* MODULUS  */
+    UNARYMINUS = 298,              /* UNARYMINUS  */
+    NOT = 299,                     /* NOT  */
+    CARET = 300                    /* CARET  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -122,37 +125,41 @@ extern int yydebug;
 #define LATI 275
 #define FUN 276
 #define IFIKUN 277
-#define LPAR 278
-#define RPAR 279
-#define SEMI 280
-#define EQ 281
-#define TABI 282
-#define ATI 283
-#define GT 284
-#define GTEQ 285
-#define LT 286
-#define LTEQ 287
-#define EQEQ 288
-#define NEQ 289
-#define PLUS 290
-#define MINUS 291
-#define ASTERISK 292
-#define SLASH 293
-#define MODULUS 294
-#define UNARYMINUS 295
-#define NOT 296
-#define CARET 297
+#define PE 278
+#define COLON 279
+#define LPAR 280
+#define RPAR 281
+#define SEMI 282
+#define COMMA 283
+#define EQ 284
+#define TABI 285
+#define ATI 286
+#define GT 287
+#define GTEQ 288
+#define LT 289
+#define LTEQ 290
+#define EQEQ 291
+#define NEQ 292
+#define PLUS 293
+#define MINUS 294
+#define ASTERISK 295
+#define SLASH 296
+#define MODULUS 297
+#define UNARYMINUS 298
+#define NOT 299
+#define CARET 300
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 33 "ekparser.y"
+#line 46 "ekparser.y"
 
     Token tok;
+    int args;
     long int ptr;
 
-#line 156 "y.tab.h"
+#line 163 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

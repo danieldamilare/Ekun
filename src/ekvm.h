@@ -8,24 +8,27 @@
 
 CREATE_DARRAY(Lval, Stack)
 
+typedef struct {
+    Objfunc * function;
+    intptr_t slots;
+    void ** pc;
+
+} Call_frame;
+
+#define NFRAME 100
+
 typedef struct _vm {
     /* Vm stack */
     Stack stack;
     /* contains the vm bytecode */
     Code  instructions;
     Object * objects;
+    Call_frame frame[NFRAME];
+    Call_frame * fp;
     void ** pc;
-    void ** progbase;
     Symbol strings;
     Symbol globals;
 } VM;
-
-typedef struct {
-    Objfunc * function;
-    Lval * slots;
-    void ** pc;
-
-} Call_frame;
 
 extern VM vm;
 
@@ -44,9 +47,9 @@ int get_err_no(void);
 
 
 /* OPCODES */
-void ppop(void), constpush(void), sub(void), mod(void), add(void),
+void constpush(void), sub(void), mod(void), add(void),
      mul(void), power(void), eq(void), le(void), lt(void), gt(void), ge(void),
-     print(void), neg(void), divide(void), ooto(void), iro(void), gvarpush(void), gvarstore(void), jz(void), jmp(void), andjmp(void), orjmp(void), forloop(void);
+     print(void), neg(void), divide(void), ooto(void), iro(void), gvarpush(void), gvarstore(void), jz(void), jmp(void), andjmp(void), orjmp(void), forloop(void), call(void), ret(void);
 
 #define STOP NULL
 #endif

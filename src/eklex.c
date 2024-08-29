@@ -137,7 +137,7 @@ Token token_identifier(char * word){
                 case 'a':
                     return check_keyword(word+2, "bi", TABI);
                 case 'i':
-                    if(strlen(word) == 2)
+                    if(word[2] == '\0')
                         return initialize_token(TI);
                     else return initialize_token(IDENT);
                 default:
@@ -155,6 +155,14 @@ Token token_identifier(char * word){
                         return check_keyword(word+3, "i", PARI);
                     else
                         return initialize_token(IDENT);
+                    break;
+                case 'e':
+                        if(word[2] == '\0')
+                            return initialize_token(PE);
+                        else 
+                            return initialize_token(IDENT);
+                        break;
+
                 default:
                     return initialize_token(IDENT);
             }
@@ -165,7 +173,7 @@ Token token_identifier(char * word){
         case 'f': 
                   switch(word[1]){
                       case 'i':
-                          if(strlen(word) == 2)
+                          if(word[2] == '\0')
                               return initialize_token(FI);
                           else 
                               return initialize_token(IDENT);
@@ -191,12 +199,12 @@ Token token_identifier(char * word){
         case 's': 
                   switch(word[1]){
                       case 'i': 
-                          if(strlen(word) == 2)
+                          if(word[2] == '\0')
                               return initialize_token(SI);
                           else
                               return initialize_token(IDENT);
                       case 'e':
-                          if (strlen(word) == 2)
+                          if (word[2] == '\0')
                               return initialize_token(SE);
                           else
                               return initialize_token(IDENT);
@@ -239,8 +247,10 @@ Token get_token(void){
         case '(': return initialize_token(LPAR);
         case '-': return initialize_token(MINUS);
         case '*': return initialize_token(ASTERISK);
+        case ',': return initialize_token(COMMA);
         case ';': return initialize_token(SEMI);
         case '%': return initialize_token(MODULUS);
+        case ':': return initialize_token(COLON);
         case '^': return initialize_token(CARET);
         case '/': return initialize_token(SLASH);
         case '>': return follow('=', GTEQ, GT);
