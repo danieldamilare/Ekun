@@ -4,6 +4,12 @@
 #include <string.h>
 #include <stdbool.h>
 
+char * translate_char(int word){
+    char seq[] = "n\nb\br\rt\tf\fv\v\"\"a\a";
+    char * c = strchr(seq, word);
+    return c? c+1: c;
+}
+
  Objstring * make_string(const char * s, int length){
     uint32_t str_hash = hash(s, length);
 
@@ -12,7 +18,21 @@
     if(new_str != NULL) return new_str;
 
     new_str = (Objstring *) make_obj(sizeof(*new_str) + length + 1, OBJ_STRING);
-    memcpy(new_str->ch, s, length);
+
+    int i = 0, j = 0;
+    for(; i < length; i++){
+        if(s[i] == '\\'){
+            char c = s[++i];
+            char * ret = translate_char(c);
+            if(ret == NULL){
+                new_str->ch[j++] = '\\';
+                new_str->ch[j++] = c;
+            }
+            else new_str->ch[j++] = *ret;
+        }
+        else new_str->ch[j++] =s[i];
+    }
+    new_str->ch[j++] = '\0';
     new_str->ch[length] = '\0';
     new_str->length = length;
     new_str->hash = str_hash;

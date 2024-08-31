@@ -23,6 +23,8 @@ write_code(C2, ek_state.line_no)
     write_code(C2, ek_state.line_no);   \
     write_code(C3, ek_state.line_no)
 
+#define IN_SCOPE() (current.scope_depth > 0)
+
 enum opt{
     STORE,
     PUSH
@@ -39,6 +41,10 @@ static void end_scope(void);
 
 /* define a function object and generate the instructions for it */
 static void def_func(Token name, int arity);
+
+static intptr_t check_local(Objstring * name);
+static void add_local(Objstring * str);
+static int in_current_scope(Objstring * string);
 Compiler  current;
 
 %}
@@ -52,7 +58,7 @@ Compiler  current;
 %token <tok> NEWLINE NOOMBA IDENT ORO OOTO IRO
 %type <ptr> expr stmt ifstmt assignstmt  printstmt ifblk elsestmt stmtlist  whilestmt forstmt ifikun funcstmt funccall returnstmt
 %type <ptr> elsepatch andpatch orpatch ifpatch loopatch loopatch2 forpatch funcpatch
-%type <args> paramlist 
+%type <args> paramlist arglist
 
 //keywords
 %token <tok> TI PARI SE FI DOGBA NIGBATI PADA ISE SOPE SI BIBEEKO LATI FUN IFIKUN PE COLON
@@ -209,7 +215,8 @@ expr    : NOOMBA
         ;
 
 
-funccall : PE LPAR IDENT loopatch {gen_var($3.start, $3.length, PUSH); } COMMA paramlist RPAR {
+funccall : PE LPAR IDENT loopatch {gen_var($3.start, $3.length, PUSH); } COMMA arglist RPAR 
+         {
              CODEGEN2(call, (void *) ((intptr_t) $7)); 
              $$ = $4;
           } 
@@ -218,6 +225,11 @@ funccall : PE LPAR IDENT loopatch {gen_var($3.start, $3.length, PUSH); } COMMA p
             CODEGEN2(call, (void *) ((intptr_t) 0));
          }
          ;
+
+arglist  : /* nothing */ { $$ = 0; }
+         | expr {$$ = 1; }
+         | expr COMMA arglist {$$ = $3 + 1; }
+
 
 printstmt: SOPE expr {
          DEBUG_PRINT("printstmt: SOPE expr");
@@ -298,23 +310,36 @@ ifikun: /* nothing */ {
       ;
 
 returnstmt: PADA {
+            if(!IN_SCOPE()){
+                EK_ERROR(ek_state.line_no, 
+                "Return statement is not allowed outside a function");
+            }
             void * data = write_constant(KOROFO);
             $$ = CODEGEN2(constpush, data);
             CODEGEN(ret);
           }
-          | PADA COLON expr { $$ = $3;  CODEGEN(ret); }
+          | PADA COLON expr { 
+                if(!IN_SCOPE()){
+                 EK_ERROR(ek_state.line_no, 
+                 "Return statement is not allowed outside a function");
+                }
+                $$ = $3;  CODEGEN(ret); 
+           }
           ;
 
 funcstmt: ISE { begin_scope(); DEBUG_PRINT("matching ise"); }
-        IDENT LPAR paramlist
-        RPAR { def_func($3, $5);} funcpatch SE 
-        stmtlist PARI{
-          DEBUG_PRINT("funcstmt: ISE IDENT \
-          LPAR arglist RPAR stmt PARI");
-          /* function call are expression and therefore must return a value.
-           * Every function call return a value. if the user does not return from the
-           * function. An implicit return statement is declared with a nil value
-           * This won't be called if the user return from the function */
+          LPAR IDENT paramlist RPAR { 
+          /* this hack allows function to be define in its real scope 
+           * since function is bound to an outer scoe */
+          current.scope_depth--; def_func($4, $5); current.scope_depth++;
+          } funcpatch 
+          stmtlist PARI{
+            DEBUG_PRINT("funcstmt: ISE IDENT \
+            LPAR paramlist RPAR stmt PARI");
+            /* function call are expression and therefore must return a value.
+            * Every function call return a value. if the user does not return from the
+            * function. An implicit return statement is declared with a nil value
+            * This won't be called if the user return from the function */
            void * data = write_constant(KOROFO);
            CODEGEN3(constpush, data, ret);
            end_scope();
@@ -323,8 +348,14 @@ funcstmt: ISE { begin_scope(); DEBUG_PRINT("matching ise"); }
         ;
 
 paramlist:  /* nothing */ {$$ = 0;}
-         | IDENT {gen_var($1.start, $1.length, STORE), $$ = 1; }
-         | IDENT COMMA paramlist {gen_var($1.start, $1.length, STORE); $$ = $3 + 1;}
+         | COMMA IDENT {
+            Objstring * name = make_string($2.start, $2.length);
+            add_local(name);
+            $$ = 1; }
+         | IDENT paramlist { 
+            Objstring * name = make_string($1.start, $1.length);
+            add_local(name);
+            $$ = $2 + 1;}
          ;
 
 /* patches */
@@ -335,6 +366,7 @@ loopatch  : {
           ;
 
 funcpatch : { $$ = CODEGEN2(jmp, NULL); }
+          ;
 
 loopatch2 : {
           $$ = CODEGEN2(jz, NULL);
@@ -376,18 +408,73 @@ stat_end: NEWLINE
 %%
 
 static long int gen_var(const char * str, int length, enum opt option){
-         Objstring * string = 
-         make_string(str, length);
-         void * data = write_constant(
-         CREATE_STR(string));
+         Objstring * string = make_string(str, length);
          long int start;
-        if(option == STORE){
-           start = CODEGEN2(gvarstore, data);
+
+         //since definition is also the declaration of the variable. We check
+         // if we are currently in a scope. if we are and the current variable is 
+         // not in the current scope we declare it.
+
+         if(IN_SCOPE() && !in_current_scope(string) && option == STORE){
+            add_local(string);
+         }
+
+        intptr_t check = check_local(string);
+
+        if(check != -1){
+            if(option == STORE){
+                start = CODEGEN2(lvarstore, (void *) check);
+            }
+            else{
+                start = CODEGEN2(lvarpush, (void *) check);
+            }
         }
-        else {
-           start = CODEGEN2(gvarpush, data);
+
+        else{
+
+            void * data = write_constant(
+                 CREATE_STR(string));
+            if(option == PUSH){
+                start = CODEGEN2(gvarpush, data);
+            }
+            else {
+                start = CODEGEN2(gvarstore, data);
+            }
         }
+
         return start;
+}
+
+static int in_current_scope(Objstring * string){
+    for(int i = current.local_count -1; i >= 0; i--){
+        Local * local = &current.locals[i];
+        if (local->depth < current.scope_depth)
+            break;
+        if (local->name == string)
+            return i;
+    }
+    return 0;
+}
+
+static void add_local(Objstring * str){
+    if (current.local_count >= UINT8_COUNT){
+        EK_ERROR(ek_state.line_no, "Too many local variables in function.");
+        exit(1);
+    }
+
+    Local * local = &current.locals[current.local_count++];
+    local->name = str;
+    local->depth = current.scope_depth;
+}
+
+static intptr_t check_local(Objstring * name){
+    for (int i = current.local_count -1; i >= 0; i--){
+        Local * local = &current.locals[i];
+        if (name == local->name){
+            return i;
+        }
+    }
+    return -1;
 }
             
 
@@ -416,11 +503,28 @@ static void def_func(Token name, int arity){
 }
 
 static void begin_scope(void){
+    current.scope_depth++;
 }
+
 
 static void end_scope(void){
+    current.scope_depth--;
+    while(current.local_count > 0 &&
+        current.locals[current.local_count -1].depth > current.scope_depth){
+        current.local_count--;
+    }
+}
+        
+
+static void compiler_init(Compiler * compiler){
+    compiler->local_count = 0;
+    compiler->scope_depth = 0;
 }
 
+int compile(void){
+    compiler_init(&current);
+    return yyparse();
+}
 
 void yyerror(char * message){
     EK_ERROR(ek_state.line_no, "%s", message);

@@ -103,8 +103,12 @@ Token token_number(void){
 
 Token token_string(void){
 
-    while(peek() != '"'  && peek() != '\0' 
-            && peek() != '\n') {// does not support multiline string
+    while( peek() != '\0' && peek() != '\n') {// does not support multiline string
+        if(peek() == '\\' && peek_count(1) == '"') {
+            next_char();
+            next_char();
+        }
+        if(peek() == '"') break;
         next_char();
     }
 

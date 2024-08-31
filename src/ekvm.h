@@ -15,7 +15,7 @@ typedef struct {
 
 } Call_frame;
 
-#define NFRAME 100
+#define NFRAME 1000
 
 typedef struct _vm {
     /* Vm stack */
@@ -25,7 +25,6 @@ typedef struct _vm {
     Object * objects;
     Call_frame frame[NFRAME];
     Call_frame * fp;
-    void ** pc;
     Symbol strings;
     Symbol globals;
 } VM;
@@ -49,7 +48,7 @@ int get_err_no(void);
 /* OPCODES */
 void constpush(void), sub(void), mod(void), add(void),
      mul(void), power(void), eq(void), le(void), lt(void), gt(void), ge(void),
-     print(void), neg(void), divide(void), ooto(void), iro(void), gvarpush(void), gvarstore(void), jz(void), jmp(void), andjmp(void), orjmp(void), forloop(void), call(void), ret(void);
+     print(void), neg(void), divide(void), ooto(void), iro(void), gvarpush(void), gvarstore(void), jz(void), jmp(void), andjmp(void), orjmp(void), forloop(void), call(void), ret(void), lvarpush(void), lvarstore(void);
 
 #define STOP NULL
 #endif

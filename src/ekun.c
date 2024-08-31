@@ -2,6 +2,7 @@
 #include "utils.h"
 #include <stdlib.h>
 #include <signal.h>
+#include "ekparser.h"
 #include "dbg.h"
 #include "eklex.h"
 #include "y.tab.h"
@@ -53,7 +54,7 @@ void interpret(char * source){
             printf("Dumping...\n");
     }
     else {
-        if(yyparse() == 0){
+        if(compile() == 0){
             vm_run();
         }
     }

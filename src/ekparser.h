@@ -9,7 +9,7 @@ void yyerror(char *);
 
 
 typedef struct Local {
-    Token * name; 
+    Objstring * name; 
     int depth;
 } Local;
 
@@ -19,13 +19,12 @@ typedef enum {
 } Func_type;
 
 typedef struct Compiler {
-    Objfunc * function;
-    Func_type type;
     Local locals [UINT8_COUNT];
     int local_count;
     int scope_depth;
 } Compiler;
 
 extern Compiler  current;
+int compile(void);
 
 #endif

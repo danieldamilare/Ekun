@@ -3,6 +3,7 @@
 
 #include "dbg.h"
 #include "ekvm.h"
+#include <time.h>
 #include "eksymbol.h"
 #include "ektypes.h"
 #include "ekun.h"
@@ -15,7 +16,21 @@ IMPLEMENT_DARRAY(Lval, Stack, stack)
 VM vm;
 
 #define VM_STACK_TOP (&vm.stack.data[vm.stack.count -1])
-                                                        
+
+#define GET_STACK_POS(offset) (vm.stack.data[vm.fp->slots +(offset)])
+
+#define SET_STACK_POS(offset, value) \
+    (vm.stack.data[vm.fp->slots + (offset)] = (value))
+ 
+static void add_builtin(const char * name, bltin_func function){
+    push(CREATE_OBJ(make_string(name, strlen(name))));
+    push(CREATE_OBJ(make_bltin(function)));
+    table_put(&vm.globals, GET_STR(peek(1)), peek(0));
+    pop();
+    pop();
+}                                                       
+
+
 /* pop current value from stack  */
 Lval pop(void){
 
@@ -39,11 +54,17 @@ Lval peek(int i){
     return vm.stack.data[vm.stack.count - 1 -i];
 }
 
+/* builin function */
+static Lval bltin_clock(int arg_count, Lval * args){
+    return CREATE_NUM((double)clock()/ CLOCKS_PER_SEC);
+}
+
 void vm_init(void){
     stack_init(&vm.stack);
     code_init(&vm.instructions);
     init_table(&vm.globals);
     init_table(&vm.strings);
+    add_builtin("igba", bltin_clock);
     vm.objects = NULL;
     vm.fp = vm.frame;
 }
@@ -73,13 +94,6 @@ void vm_cleanup(void){
     free_entries(&vm.strings);
 }
 
-static void add_builtin(const char * name, bltin_func function){
-    push(CREATE_OBJ(make_string(name, strlen(name))));
-    push(CREATE_OBJ(make_bltin(function)));
-    table_put(&vm.globals, GET_STR(peek(1)), peek(0));
-    pop();
-    pop();
-}
 
 intptr_t write_code(void * data, int line){
     return code_append(&vm.instructions, data, line);
@@ -165,6 +179,17 @@ void gvarpush(void){
     }
 }
 
+/* store local variable */
+void lvarpush(void){
+    intptr_t slot = (intptr_t) vm_advance();
+    push(GET_STACK_POS(slot));
+}
+
+void lvarstore(void){
+    intptr_t slot = (intptr_t) vm_advance();
+    SET_STACK_POS(slot, peek(0));
+}
+
 /* control flow functions */
 void jz(void){
     intptr_t num = (intptr_t) vm_advance();
@@ -215,6 +240,7 @@ void forloop(void){
     double num2 = GET_NUM(peek(1));
     double num1 = GET_NUM(peek(2));
     if(num1 > num2){
+        vm.stack.count -= 3; //pop off the 3 value from the stack;
         vm.fp->pc = &vm.instructions.data[jmp_addr];
     } else {
         push(CREATE_NUM(num1));
@@ -407,7 +433,6 @@ void ge(void){
     double num1= GET_NUM(pop());
     push(CREATE_BOOL(num1 >= num2));
 }
-
 
 void print(void){
     Lval value = pop();
