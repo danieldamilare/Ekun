@@ -14,7 +14,8 @@ typedef enum {
 typedef enum{
     OBJ_STRING = 300,
     OBJ_FUNC,
-    OBJ_BLTIN
+    OBJ_BLTIN,
+    OBJ_ARRAY
 } Otype;
 
 typedef struct object {
@@ -38,6 +39,13 @@ typedef struct obj_string{
     int length;
     char ch[];
 }Objstring;
+
+typedef struct obj_arr {
+    Object obj;
+    int length;
+    int capacity;
+    Lval * valuearray;
+} Objarray;
 
 typedef Lval (* bltin_func)(int argcount, Lval * args);
 
@@ -69,44 +77,34 @@ typedef struct {
 
 #define GET_NUM(value) ((value).val.number)
 #define GET_BOOL(value) ((value).val.boolean)
-#define GET_STR(value)  (Objstring *)((value).val.obj)
+#define GET_STR(value)  ((Objstring *)((value).val.obj))
 #define GET_CHAR(value) (value->ch) 
 #define GET_FUNC(value)  ((Objfunc *)((value).val.obj))
 #define GET_OBJ(value) ((Object *)(((value).val.obj)))
 
 #define GET_BLTIN(value) (((Objbltin *) GET_OBJ((value)))->function)
 
+#define GET_ARR(value) ((Objarray *) ((value).val.obj))
+
 #define IS_STR(value) (CHECK_TYPE((value), LVAL_OBJ) &&    \
         GET_OBJ((value))->type == OBJ_STRING)
 
-#define EQUAL_TYPE(type)                                            \
-    do{                                                             \
-        if(!CHECK_TYPE(peek(0), (type))  ||                       \
-                !CHECK_TYPE(peek(1), (type))){                    \
-            EK_ERROR(get_err_no(), "operands must be %s", gettype((type)));    \
-            exit(1); \
-        }                                                           \
-    }while(0);                                      
+#define IS_ARR(value) (CHECK_TYPE((value), LVAL_OBJ) && \
+        GET_OBJ((value))->type == OBJ_ARRAY)
 
 
-static inline const char * gettype(short type){
-    switch(type){
-        case LVAL_NUM:
-            return "number";
-        case LVAL_BOOL:
-            return "boolean";
-        case OBJ_STRING:
-            return "string";
-        default:
-            return NULL;
-    }
-}
+const char * which_type(Lval obj);
 
 Objstring * make_string(const char * s, int length);
 Object * make_obj(int obj_lenght, Otype type);
-Objfunc * make_func();
+Objfunc * make_func(void);
 Objbltin * make_bltin(bltin_func function);
+Objarray * make_array(int arg_count, Lval *start);
+
+bool get_string_index(Objstring * iter, Lval index, Lval * value);
+bool get_array_index(Objarray * iter, Lval index, Lval * value);
 
 bool is_false(Lval val);
+bool is_iter(Lval val);
 
 #endif

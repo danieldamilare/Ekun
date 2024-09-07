@@ -1,8 +1,22 @@
 #include "ektypes.h"
+#include "ekun.h"
 #include "ekvm.h"
 #include "ekmem.h"
+#include "utils.h"
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+
+static const char *  Type_info[] = {
+    [LVAL_NIL] = "korofo",
+    [LVAL_NUM] = "noomba",
+    [OBJ_STRING] = "oro",
+    [OBJ_FUNC] = "ise",
+    [OBJ_BLTIN] = "ise abawa",
+    [OBJ_ARRAY] = "apere"
+};
+
+
 
 char * translate_char(int word){
     char seq[] = "n\nb\br\rt\tf\fv\v\"\"a\a";
@@ -48,7 +62,7 @@ Object * make_obj(int obj_length, Otype type){
     return obj;
 }
 
-Objfunc * make_func(){
+Objfunc * make_func(void){
     Objfunc * func = (Objfunc *) make_obj(sizeof(*func), OBJ_FUNC);
     func->arity = 0;
     func->name = NULL;
@@ -71,9 +85,55 @@ static bool is_false_obj(Object * obj){
         case OBJ_FUNC:
         case OBJ_BLTIN:
             return false;
+        case OBJ_ARRAY:
+            return ((Objarray *)obj)->length == 0;
     }
     return false;
 }
+
+Objarray * make_array(int arr_count, Lval * start){
+    Objarray * arr = (Objarray *)make_obj(sizeof(*arr), OBJ_ARRAY);
+
+#define ARR_INIT 8
+#define ARR_RATE 1.5
+
+    int capacity = arr_count < ARR_INIT ? ARR_INIT : arr_count * ARR_RATE;
+
+    arr->valuearray = ek_malloc(capacity * sizeof(Lval));
+    for(int i = 0; i < arr_count; i++){
+        arr->valuearray[i] = start[i];
+    }
+    arr->capacity = capacity;
+    arr->length = arr_count;
+    return arr;
+
+#undef ARR_INIT
+#undef ARR_RATE
+}
+
+bool get_string_index(Objstring * iter, Lval index, Lval * value){
+    int length = iter->length;
+
+    int indx = GET_NUM(index);
+    indx = indx< 0? length + indx: indx;
+    if (indx < 0 || indx >= length){
+        return false;
+    }
+    *value =  CREATE_STR(make_string(&iter->ch[indx], 1));
+    return true;
+}
+
+bool get_array_index(Objarray * iter, Lval index, Lval * value){
+    int length = iter->length;
+    int indx = GET_NUM(index);
+    indx = indx< 0? length + indx: indx;
+    if (indx < 0 || indx >= length){
+        return false;
+    }
+    *value = iter->valuearray[indx];
+    return true;
+}
+
 
 bool is_false(Lval val){
     switch(val.type){
@@ -87,4 +147,23 @@ bool is_false(Lval val){
             return is_false_obj((Object *) val.val.obj);
     }
     return false;
+}
+
+bool is_iter(Lval value){
+    if (value.type != LVAL_OBJ) return false;
+    int type = value.val.obj->type;
+    if (type == OBJ_STRING || type == OBJ_ARRAY)
+        return true;
+    return false;
+}
+
+const char * which_type(Lval obj){
+    if(obj.type == LVAL_BOOL){
+        return obj.val.boolean? "ooto" : "iro";
+    }
+    int type = obj.type;
+    if(type == LVAL_OBJ){
+        type = obj.val.obj->type;
+    }
+    return Type_info[type];
 }

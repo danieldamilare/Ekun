@@ -51,7 +51,9 @@ void interpret(char * source){
     else if(IS_SET_OPT(OPT_DISASSEMBLE) && 
             !IS_SET_OPT(OPT_TOKENIZE)){
             DEBUG_PRINT("Dump option set");
-            printf("Dumping...\n");
+            if(compile() == 0) {
+                disassemble();
+            }
     }
     else {
         if(compile() == 0){

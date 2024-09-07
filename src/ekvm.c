@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "utils.h"
 #include "dbg.h"
 #include "ekvm.h"
 #include <time.h>
@@ -15,13 +15,27 @@ IMPLEMENT_DARRAY(Lval, Stack, stack)
 
 VM vm;
 
-#define VM_STACK_TOP (&vm.stack.data[vm.stack.count -1])
+#define VM_STACK_TOP (&vm.stack.data[vm.stack.count])
 
 #define GET_STACK_POS(offset) (vm.stack.data[vm.fp->slots +(offset)])
+#define ARR_SIZE(A) (sizeof(A)/sizeof(A[1]))
 
 #define SET_STACK_POS(offset, value) \
     (vm.stack.data[vm.fp->slots + (offset)] = (value))
- 
+
+static Lval pop(void){
+
+    //>todo Update error handling
+    if(vm.stack.count <= 0){
+        EK_ERROR(get_err_no(), "Error: Stack underflow\n");
+         exit(1);
+    }
+
+    vm.stack.count--;
+    return vm.stack.data[vm.stack.count];
+}
+
+
 static void add_builtin(const char * name, bltin_func function){
     push(CREATE_OBJ(make_string(name, strlen(name))));
     push(CREATE_OBJ(make_bltin(function)));
@@ -30,19 +44,12 @@ static void add_builtin(const char * name, bltin_func function){
     pop();
 }                                                       
 
+static void print(Lval value);
+
 
 /* pop current value from stack  */
-Lval pop(void){
-
-    //>todo Update error handling
-    if(vm.stack.count <= 0){
-        fprintf(stderr, "Error: Stack underflow\n");
-        // exit(1);
-        abort();
-    }
-
-    vm.stack.count--;
-    return vm.stack.data[vm.stack.count];
+void ppop(void){
+    pop();
 }
 
 void push(Lval val){
@@ -59,17 +66,39 @@ static Lval bltin_clock(int arg_count, Lval * args){
     return CREATE_NUM((double)clock()/ CLOCKS_PER_SEC);
 }
 
+static Lval bltin_print(int arg_count, Lval * args){
+    for(int i = 0; i < arg_count; i++){
+        print(args[i]);
+        printf(" ");
+    }
+    printf("\n");
+    return  KOROFO;
+}
+
+/* print without new line */
+static Lval bltin_print2(int arg_count, Lval * args){
+    for(int i = 0; i < arg_count-1; i++){
+        print(args[i]);
+        printf(" ");
+    }
+    print(args[arg_count -1]);
+    return KOROFO;
+}
+
+
 void vm_init(void){
     stack_init(&vm.stack);
     code_init(&vm.instructions);
     init_table(&vm.globals);
     init_table(&vm.strings);
     add_builtin("igba", bltin_clock);
+    add_builtin("sope", bltin_print);
+    add_builtin("ko_oro", bltin_print2);
     vm.objects = NULL;
     vm.fp = vm.frame;
 }
 
-static void free_objects(){
+static void free_objects(void){
     for(Object * obj = vm.objects; obj != NULL;){
         Object * next = obj->next;
         switch(obj->type){
@@ -161,6 +190,86 @@ void constpush(void){
     push(val);
 }
 
+
+void index_store_1(void){
+    Lval to_assign = peek(0);
+    Lval index = peek(1);
+    Lval iter = peek(2);
+
+    if (is_iter(iter) == false){
+        vm.stack.count -= 3;
+        EK_ERROR(get_err_no(), "Error: attempt to index a '%s' value", which_type(iter));
+        exit(1);
+    }
+}
+
+
+Lval get_index(Lval iter, Lval index){
+    int not_num = CHECK_TYPE(index, LVAL_NUM) == false;
+        if (not_num){
+            EK_ERROR(get_err_no(),
+                    "Error: attempt to index 'oro' type with type '%s'",
+                    which_type(index));
+            exit(1);
+        }
+
+    if (IS_STR(iter)){
+            Lval value;
+        if (!get_string_index(GET_STR(iter),index, &value)){
+            EK_ERROR(get_err_no(), 
+                    "index out of range of type 'oro'");
+            exit(1);
+        }
+        return value;
+    } else if(IS_ARR(iter)){
+        Lval value;
+
+        if(!get_array_index(GET_ARR(iter), index, &value)){
+            EK_ERROR(get_err_no(), 
+                    "index out of range of type 'apeere'");
+            exit(1);
+        }
+        return value;
+    }
+    return KOROFO;
+}
+
+void build_array(void){
+    intptr_t arg_count = (intptr_t) vm_advance();
+    Lval * start = VM_STACK_TOP -arg_count;
+    Lval obj = CREATE_OBJ(make_array(arg_count, start));
+    vm.stack.count -= arg_count;
+    push(obj);
+}
+
+void index_store_2(void){
+    Lval index = peek(0);
+    Lval iter = peek(1);
+    Lval to_assign = peek(2);
+     if (is_iter(iter) == false){
+        vm.stack.count -= 3;
+        EK_ERROR(get_err_no(), 
+                "Error: attempt to index a '%s' value", which_type(iter));
+        exit(1);
+    }
+
+}
+
+void index_push(void){
+    Lval index = pop();
+    Lval iter = pop();
+    if (is_iter(iter)) {
+        push(get_index(iter, index));
+    }
+    else{
+        EK_ERROR(get_err_no(), 
+                "Error: attempt to index a '%s' value",
+                which_type(iter));
+        exit(1);
+ 
+    }
+}
+
 /* store global variable */
 void gvarstore(void){
     Objstring * var = GET_STR(*((Lval *)vm_advance()));
@@ -235,7 +344,14 @@ void orjmp(void){
 
 void forloop(void){
     int jmp_addr = (intptr_t) vm_advance();
-    EQUAL_TYPE(LVAL_NUM);
+    if(!CHECK_TYPE(peek(0), LVAL_NUM) ||
+        !CHECK_TYPE(peek(1), LVAL_NUM) ||
+        !CHECK_TYPE(peek(2), LVAL_NUM)){
+        EK_ERROR(get_err_no(), "ERROR: Loop must only contain 'noomba': '%s' and '%s' and '%s'",
+                which_type(peek(0)), which_type(peek(1)),
+                which_type(peek(2)));
+        print(peek(0)), printf(" "), print(peek(1)), printf(" "), print(peek(2)), printf("\n");
+    }
     double incr = GET_NUM(peek(0));
     double num2 = GET_NUM(peek(1));
     double num1 = GET_NUM(peek(2));
@@ -282,7 +398,7 @@ void call(void){
                 bltin_func function = GET_BLTIN(val);
                 Lval value =function(arg_count,
                         VM_STACK_TOP - arg_count);
-                vm.stack.count -= arg_count -1; //reset the stack minus 1 to remove the function on the stack
+                vm.stack.count -= arg_count +1; //reset the stack minus 1 to remove the function on the stack
                 push(value);
                 return;
            }
@@ -295,7 +411,6 @@ void call(void){
     exit(1);
 }
 
-
 void ret(void){
     Lval  result = pop();
     //pop all locals from stack and store return value
@@ -304,20 +419,33 @@ void ret(void){
     vm.fp--;
 }
 
-
 /* binary operation */
 
 void sub(void){
-    EQUAL_TYPE(LVAL_NUM);
-    double num2 = GET_NUM(pop());
-    double num1 = GET_NUM(pop());
+    Lval val2 = pop();
+    Lval val1 = pop();
+    if(!CHECK_TYPE(val2, LVAL_NUM) ||
+            !CHECK_TYPE(val2, LVAL_NUM)){
+        EK_ERROR(get_err_no(), "Attempting to perform operation '-' on unsupported type of '%s' and '%s'",
+                which_type(val1), which_type(val2));
+        exit(1);
+    }
+    double num2 = GET_NUM(val2);
+    double num1 = GET_NUM(val1);
     push(CREATE_NUM(num1 - num2));
 }
 
 void divide(void){
-    EQUAL_TYPE(LVAL_NUM);
-    double num2 = GET_NUM(pop());
-    double num1 = GET_NUM(pop());
+    Lval val2 = pop();
+    Lval val1 = pop();
+    if(!CHECK_TYPE(val2, LVAL_NUM) ||
+            !CHECK_TYPE(val2, LVAL_NUM)){
+        EK_ERROR(get_err_no(), "Attempting to perform operation '/' on unsupported type of '%s' and '%s'",
+                which_type(val1), which_type(val2));
+        exit(1);
+    }
+    double num2 = GET_NUM(val2);
+    double num1 = GET_NUM(val1);
     if(num2 == 0){
         EK_ERROR(get_err_no(), "error trying to divide by zero");
     }
@@ -325,9 +453,17 @@ void divide(void){
 }
 
 void mod(void){
-    EQUAL_TYPE(LVAL_NUM);
-    double num2 = GET_NUM(pop());
-    double num1 = GET_NUM(pop());
+    Lval val2 = pop();
+    Lval val1 = pop();
+    if(!CHECK_TYPE(val2, LVAL_NUM) ||
+            !CHECK_TYPE(val2, LVAL_NUM)){
+        EK_ERROR(get_err_no(), "Attempting to perform operation "
+                "'%%' on unsupported type of '%s' and '%s'",
+                which_type(val1), which_type(val2));
+        exit(1);
+    }
+    double num2 = GET_NUM(val2);
+    double num1 = GET_NUM(val1);
     if(num2 == 0){
         EK_ERROR(get_err_no(), "error trying to divide by zero");
     }
@@ -337,16 +473,33 @@ void mod(void){
 }
 
 void mul(void){
-    EQUAL_TYPE(LVAL_NUM);
-    double num2 = GET_NUM(pop());
-    double num1 = GET_NUM(pop());
+    Lval val2 = pop();
+    Lval val1 = pop();
+    if(!CHECK_TYPE(val2, LVAL_NUM) ||
+            !CHECK_TYPE(val2, LVAL_NUM)){
+        EK_ERROR(get_err_no(), "Attempting to perform operation "
+                "'*' on unsupported type of '%s' and '%s'",
+                which_type(val1), which_type(val2));
+        exit(1);
+    }
+
+    double num2 = GET_NUM(val2);
+    double num1 = GET_NUM(val1);
     push(CREATE_NUM(check_err(num1 * num2)));
 }
 
 void power(void){
-    EQUAL_TYPE(LVAL_NUM);
-    double num2 = GET_NUM(pop());
-    double num1 = GET_NUM(pop());
+    Lval val2 = pop();
+    Lval val1 = pop();
+    if(!CHECK_TYPE(val2, LVAL_NUM) ||
+            !CHECK_TYPE(val2, LVAL_NUM)){
+        EK_ERROR(get_err_no(), "Attempting to perform operation "
+                "'^' on unsupported type of '%s' and '%s'",
+                which_type(val1), which_type(val2));
+        exit(1);
+    }
+    double num2 = GET_NUM(val2);
+    double num1 = GET_NUM(val1);
     push(CREATE_NUM(check_err(pow(num1, num2))));
 }
 
@@ -358,6 +511,11 @@ void add(void){
     }
     else if(IS_STR(peek(0)) && IS_STR(peek(1))){
         concat_string();
+    } else{
+        Lval val2 = pop();
+        Lval val1 = pop();
+        EK_ERROR(get_err_no(), "ERROR: Trying to add two operands of incompatible type: '%s' and '%s'", which_type(val1), which_type(val2));
+        exit(1);
     }
 }
 
@@ -387,17 +545,33 @@ void eq(void){
 
 
 void le(void){
-    EQUAL_TYPE(LVAL_NUM);
-    double num2= GET_NUM(pop());
-    double num1= GET_NUM(pop());
+    Lval val2 = pop();
+    Lval val1 = pop();
+    if(!CHECK_TYPE(val2, LVAL_NUM) ||
+            !CHECK_TYPE(val2, LVAL_NUM)){
+        EK_ERROR(get_err_no(), "Attempting to perform operation \
+                '<=' on unsupported type of '%s' and '%s'",
+                which_type(val1), which_type(val2));
+        exit(1);
+    }
+    double num2= GET_NUM(val2);
+    double num1= GET_NUM(val1);
     push(CREATE_BOOL(num1 <= num2));
 }
 
 
 void lt(void){
-    EQUAL_TYPE(LVAL_NUM);
-    double num2= GET_NUM(pop());
-    double num1= GET_NUM(pop());
+    Lval val2 = pop();
+    Lval val1 = pop();
+    if(!CHECK_TYPE(val2, LVAL_NUM) ||
+            !CHECK_TYPE(val2, LVAL_NUM)){
+        EK_ERROR(get_err_no(), "Attempting to perform operation \
+                '<' on unsupported type of '%s' and '%s'",
+                which_type(val1), which_type(val2));
+        exit(1);
+    }
+    double num2= GET_NUM(val2);
+    double num1= GET_NUM(val1);
     push(CREATE_BOOL(num1 < num2));
 }
 
@@ -405,7 +579,7 @@ void neg(void){
     Lval num = peek(0);
 
     if(!CHECK_TYPE(num, LVAL_NUM)){
-        EK_ERROR(get_err_no(), "Error attempting to negate a data type not number");
+        EK_ERROR(get_err_no(), "Error attempting to negate a data type '%s' not number", which_type(num));
     }
 
     vm.stack.data[vm.stack.count -1] = CREATE_NUM(-GET_NUM(num));
@@ -420,31 +594,43 @@ void iro(void){
 }
 
 void gt(void){
-    EQUAL_TYPE(LVAL_NUM);
-    double num2= GET_NUM(pop());
-    double num1= GET_NUM(pop());
+    Lval val2 = pop();
+    Lval val1 = pop();
+    if(!CHECK_TYPE(val2, LVAL_NUM) || !CHECK_TYPE(val2, LVAL_NUM)){
+        EK_ERROR(get_err_no(), "Attempting to perform operation '>' on unsupported type of '%s' and '%s'", which_type(val1), which_type(val2));
+        exit(1);
+    }
+    double num2= GET_NUM(val2);
+    double num1= GET_NUM(val1);
     push(CREATE_BOOL(num1 > num2));
 }
 
 
 void ge(void){
-    EQUAL_TYPE(LVAL_NUM);
-    double num2= GET_NUM(pop());
-    double num1= GET_NUM(pop());
+    Lval val2 = pop();
+    Lval val1 = pop();
+    if(!CHECK_TYPE(val2, LVAL_NUM) ||
+            !CHECK_TYPE(val2, LVAL_NUM)){
+        EK_ERROR(get_err_no(), "Attempting to perform operation \
+                '>=' on unsupported type of '%s' and '%s'",
+                which_type(val1), which_type(val2));
+        exit(1);
+    }
+    double num2= GET_NUM(val2);
+    double num1= GET_NUM(val1);
     push(CREATE_BOOL(num1 >= num2));
 }
 
-void print(void){
-    Lval value = pop();
+static void print(Lval value){
     switch(value.type){
         case  LVAL_NUM:
-            printf("%.8g\n", value.val.number);
+            printf("%.8g", value.val.number);
             break;
         case LVAL_BOOL:
-            printf("%s\n", value.val.boolean?"ooto": "iro");
+            printf("%s", value.val.boolean?"ooto": "iro");
             break;
         case LVAL_NIL:
-            printf("korofo\n");
+            printf("korofo");
             break;
         case LVAL_OBJ:
             {
@@ -452,15 +638,26 @@ void print(void){
 
             switch(obj->type){
                 case OBJ_STRING:
-                    printf("%s\n", 
+                    printf("%s", 
                             ((Objstring *)obj)->ch);
                     break;
                 case OBJ_FUNC:
-                    printf("<ise %s>\n", ((Objfunc *) obj)->name->ch);
+                    printf("<ise %s>", ((Objfunc *) obj)->name->ch);
                     break;
                 case OBJ_BLTIN:
-                    printf("<ise abawa >\n");
+                    printf("<ise abawa >");
                     break;
+                case OBJ_ARRAY:
+                    {
+                        Objarray *array = (Objarray *) obj;
+                        printf("[");
+                        for(int i = 0; i <  array->length-1; i++){
+                            print(array->valuearray[i]);
+                            printf(", ");
+                        }
+                        print(array->valuearray[array->length-1]);
+                        printf("]");
+                    }
                 default:
                     break;
             }

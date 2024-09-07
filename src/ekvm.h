@@ -32,7 +32,6 @@ typedef struct _vm {
 extern VM vm;
 
 void push(Lval val);
-Lval pop(void);
 Lval peek(int n);
 void vm_init(void);
 double check_err(double d);
@@ -46,9 +45,9 @@ int get_err_no(void);
 
 
 /* OPCODES */
-void constpush(void), sub(void), mod(void), add(void),
+void constpush(void), sub(void), mod(void), add(void), ppop(void),
      mul(void), power(void), eq(void), le(void), lt(void), gt(void), ge(void),
-     print(void), neg(void), divide(void), ooto(void), iro(void), gvarpush(void), gvarstore(void), jz(void), jmp(void), andjmp(void), orjmp(void), forloop(void), call(void), ret(void), lvarpush(void), lvarstore(void);
+     neg(void), divide(void), ooto(void), iro(void), gvarpush(void), gvarstore(void), jz(void), jmp(void), andjmp(void), orjmp(void), forloop(void), call(void), ret(void), lvarpush(void), lvarstore(void), index_store_2(void), index_store_1(void), index_push(void), build_array(void);
 
 #define STOP NULL
 #endif

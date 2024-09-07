@@ -31,6 +31,7 @@ typedef struct EkGlobalState{
 
 extern EkGstate ek_state;
 void tokenize(char * source);
+void disassemble(void);
 #define CMP_EQUAL(s, val) (strcmp((s), (val)) == 0)
 #define SET_OPT(opt) ek_state.options |= (opt)
 #define IS_SET_OPT(opt) (ek_state.options & (opt))

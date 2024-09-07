@@ -1,5 +1,6 @@
 #include "ekmem.h"
 #include "ekbytecode.h"
+#include "utils.h"
 #include "ekun.h"
 #include "dbg.h"
 #include <stdlib.h>

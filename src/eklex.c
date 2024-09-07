@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "eklex.h"
 #include "ekun.h"
+#include "utils.h"
 #include <stdlib.h>
 #include "dbg.h"
 #include "ctype.h"
@@ -36,17 +37,22 @@ static Token initialize_token(Ttype token_type){
 }
 
 
-static int next_char(void){
+static inline int next_char(void){
     return *lex.current++;
 }
 
+static inline int next_char_n(int n){
+    lex.current += n;
+    return *(lex.current-1);
+}
 
-static int peek(void){
+
+static inline int peek(void){
     return *lex.current;
 }
 
 
-int ek_isalpha(int c){
+static inline int ek_isalpha(int c){
     if (isalpha(c) || c == '_') return 1;
     return 0;
 }
@@ -65,26 +71,54 @@ static Token follow(int expect, Ttype follow, Ttype first){
 }
 
 
-static void skip_space(void){
+static inline void skip_space(void){
     while(peek() == ' ' || peek() == '\t')
         next_char();
 }
 
 
-static int peek_count(int n){
+static inline int peek_count(int n){
     return *(lex.current + n);
 }
 
 
 static void skip_comment(void){
+    int line_no = ek_state.line_no;
     if(peek() == '-' && peek_count(1) == '-'){
         while(peek() != '\n' && peek() != '\0')
             next_char();
+    } 
+    else if(peek() == '(' && peek_count(1) == '*'){
+        next_char_n(2);
+        int comment_depth = 0;
+
+        while(peek() != '\0'){
+
+            if(peek() == '(' && peek_count(1) == '*'){
+                comment_depth++;
+                next_char_n(2);
+            }
+            else if (peek() == '*' && peek_count(1) == ')'){
+                if(comment_depth == 0){
+                    next_char_n(2);
+                    break;
+                }
+                comment_depth--;
+                next_char();
+            }
+            else if(peek() == '\n'){
+                *(lex.line_no) += 1;
+            }
+            next_char();
+        }
+        if(comment_depth != 0){
+            EK_ERROR(ek_state.line_no, "Unterminated comment at line %d ", line_no);
+        }
     }
 }
 
 
-Token token_number(void){
+static Token token_number(void){
     while(isdigit(peek())){
         next_char();
     }
@@ -101,7 +135,7 @@ Token token_number(void){
 }
 
 
-Token token_string(void){
+static Token token_string(void){
 
     while( peek() != '\0' && peek() != '\n') {// does not support multiline string
         if(peek() == '\\' && peek_count(1) == '"') {
@@ -122,7 +156,7 @@ Token token_string(void){
 }
 
 
-Token check_keyword(char * keyword, char * expect, Ttype ifexpect){
+static Token check_keyword(char * keyword, char * expect, Ttype ifexpect){
     if(strlen(keyword) != strlen(expect))
         return initialize_token(IDENT);
     if(strncmp(keyword, expect, strlen(expect)) == 0)
@@ -130,7 +164,7 @@ Token check_keyword(char * keyword, char * expect, Ttype ifexpect){
     else return initialize_token(IDENT);
 }
 
-Token token_identifier(char * word){
+static Token token_identifier(char * word){
     // no keyword with a length of 1
     if(strlen(word) == 1) return initialize_token(IDENT); 
 
@@ -173,7 +207,17 @@ Token token_identifier(char * word){
             break;
 
         case 'n': return check_keyword(word+1, "igbati", NIGBATI);
-        case 'd': return check_keyword(word+1, "ogba", DOGBA);
+        case 'd': 
+                  switch(word[1]){
+                      case 'e':
+                            if(word[2] == '\0')
+                                return initialize_token(DE);
+                            else
+                                return initialize_token(IDENT);
+                      case 'o':
+                          return check_keyword(word+2, "gba", DOGBA);
+                  }
+                  break;
         case 'f': 
                   switch(word[1]){
                       case 'i':
@@ -212,7 +256,6 @@ Token token_identifier(char * word){
                               return initialize_token(SE);
                           else
                               return initialize_token(IDENT);
-                      case 'o': return check_keyword(word+2, "pe", SOPE);
                      default:
                           return initialize_token(IDENT);
                   }
@@ -227,8 +270,7 @@ Token token_identifier(char * word){
                   return initialize_token(IDENT);
 }
 
-
-Token token_ident(void){
+static Token token_ident(void){
     while(ek_isalpha(peek()) || isdigit(peek()))
         next_char();
     char word[512] = {0};
@@ -248,13 +290,28 @@ Token get_token(void){
     switch(c){
         case '+': return initialize_token(PLUS);
         case ')': return initialize_token(RPAR);
-        case '(': return initialize_token(LPAR);
-        case '-': return initialize_token(MINUS);
+        case '(': 
+                  return initialize_token(LPAR);
+        case '[': return initialize_token(LBRACKET);
+        case ']': return initialize_token(RBRACKET);
+        case '{': return initialize_token(LBRACES);
+        case '}': return initialize_token(RBRACES);
+        case '-': 
+                  return initialize_token(MINUS);
         case '*': return initialize_token(ASTERISK);
         case ',': return initialize_token(COMMA);
         case ';': return initialize_token(SEMI);
         case '%': return initialize_token(MODULUS);
         case ':': return initialize_token(COLON);
+        case '\\': if(peek() == '\n'){
+                       (*lex.line_no)++;
+                       next_char();
+                       return get_token();
+                   } else {
+                       EK_ERROR(ek_state.line_no, 
+                               "Syntax Error: Unexpected character after '\' character");
+                   }
+
         case '^': return initialize_token(CARET);
         case '/': return initialize_token(SLASH);
         case '>': return follow('=', GTEQ, GT);
