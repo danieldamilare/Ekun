@@ -3,6 +3,7 @@
 %{
 #include <stdlib.h>
 #include <stdint.h>
+#include "utils.h"
 #include "ekun.h"
 #include "eklex.h"
 #include "ekbytecode.h"
@@ -56,13 +57,13 @@ Compiler  current;
 }
 
 %token <tok> NEWLINE NOOMBA IDENT ORO OOTO IRO
-%type <ptr> expr stmt ifstmt assignstmt  printstmt ifblk elsestmt stmtlist  whilestmt forstmt ifikun funcstmt funccall returnstmt
+%type <ptr> expr stmt ifstmt assignstmt ifblk elsestmt stmtlist  whilestmt forstmt ifikun funcstmt funccall returnstmt
 %type <ptr> elsepatch andpatch orpatch ifpatch loopatch loopatch2 forpatch funcpatch
 %type <args> paramlist arglist
 
 //keywords
-%token <tok> TI PARI SE FI DOGBA NIGBATI PADA ISE SOPE SI BIBEEKO LATI FUN IFIKUN PE COLON
-%token <tok> LPAR RPAR SEMI COMMA
+%token <tok> TI PARI SE FI DOGBA NIGBATI PADA ISE SI BIBEEKO LATI FUN IFIKUN PE COLON DE
+%token <tok> LPAR RPAR SEMI COMMA LBRACKET RBRACKET LBRACES RBRACES
 
 //OPERATOR
 %right EQ
@@ -86,14 +87,12 @@ program: stmtlist {
 
 stmt   : expr  
        { DEBUG_PRINT("stmt: expr"); 
-         CODEGEN(pop);
+         CODEGEN(ppop);
        }
        | assignstmt
        { DEBUG_PRINT("stmt: assignstmt"); }
        | ifstmt
        { DEBUG_PRINT("stmt: ifstmt"); }
-       | printstmt
-       { DEBUG_PRINT("stmt: printstmt"); }
        | whilestmt
        { DEBUG_PRINT("stmt: whilestmt"); }
        | forstmt {
@@ -107,9 +106,9 @@ stmt   : expr
        ;
 
 
-stmtlist: /* nothing */ { $$ =  code_get_count(&vm.instructions);}
+stmtlist: /* empty */ { $$ =  code_get_count(&vm.instructions);}
         | stmtlist stat_end
-        | stmtlist stmt stat_end { DEBUG_PRINT("stmtlist: stmlist stmt"); }
+        | stmtlist stmt { DEBUG_PRINT("stmtlist: stmlist stmt"); }
         ;
 
 expr    : NOOMBA  
@@ -140,7 +139,19 @@ expr    : NOOMBA
             $$ = CODEGEN2(constpush, data);
           }
 
+        | LBRACKET loopatch arglist RBRACKET
+        {
+            $$ = $2;
+            CODEGEN2(build_array, $3);
+        }
+
         | funccall
+        
+        | expr LBRACKET expr RBRACKET 
+        {
+           
+           CODEGEN(index_push);
+        }
 
         | MINUS expr %prec UNARYMINUS
         { DEBUG_PRINT("expr: MINUS expr");
@@ -226,28 +237,30 @@ funccall : PE LPAR IDENT loopatch {gen_var($3.start, $3.length, PUSH); } COMMA a
          }
          ;
 
-arglist  : /* nothing */ { $$ = 0; }
+arglist  : /* empty */ { $$ = 0; }
          | expr {$$ = 1; }
          | expr COMMA arglist {$$ = $3 + 1; }
 
 
-printstmt: SOPE expr {
-         DEBUG_PRINT("printstmt: SOPE expr");
-         CODEGEN(print);
-         $$ = $2;
-         }
-         ;
-
-assignstmt: IDENT EQ expr {
-          DEBUG_PRINT("assignstmt:\
-          IDENT EQ expr");
-           $$ = $3;
-           gen_var($1.start, $1.length, STORE);
+assignstmt: IDENT EQ expr 
+          {
+             DEBUG_PRINT("assignstmt:\
+             IDENT EQ expr");
+             $$ = $3;
+             gen_var($1.start, $1.length, STORE);
            }
            | FI expr SI IDENT 
            {
-           $$ = $2;
-           gen_var($4.start, $4.length, STORE);
+             $$ = $2;
+             gen_var($4.start, $4.length, STORE);
+           }
+           | expr LBRACKET expr RBRACKET EQ expr
+           {
+               CODEGEN(index_store_1);
+           }
+           | FI expr SI expr LBRACKET expr RBRACKET{
+                CODEGEN(index_store_2);
+                $$ = $2;
            }
            ;
 
@@ -271,7 +284,7 @@ ifblk: TI expr SE ifpatch stmtlist elsepatch elsestmt {
       }
    ;
 
-elsestmt:  /* nothing */ {
+elsestmt:  /* emtpy */ {
          DEBUG_PRINT("elsestmt: /*nothing*/");
          $$ =  code_get_count(&vm.instructions); 
          DEBUG_PRINT(" elsestmt return count: %ld\n", $$);
@@ -294,7 +307,7 @@ whilestmt: NIGBATI loopatch expr loopatch2 SE stmtlist PARI {
          $$ = $2;
 }
 
-forstmt: FUN IDENT LATI expr SI expr ifikun loopatch forpatch {
+forstmt: FUN IDENT LATI expr DE expr ifikun loopatch forpatch {
         gen_var($2.start, $2.length, STORE); } SE stmtlist PARI {
         CODEGEN2(jmp, (void *) $8);
         vm.instructions.data[$8+1] = 
@@ -302,7 +315,7 @@ forstmt: FUN IDENT LATI expr SI expr ifikun loopatch forpatch {
         $$ = $4;}
         ;
 
-ifikun: /* nothing */ { 
+ifikun: /* empty */ { 
       void * data = write_constant(CREATE_NUM(1));
       $$ = CODEGEN2(constpush, data);
       }
@@ -313,6 +326,7 @@ returnstmt: PADA {
             if(!IN_SCOPE()){
                 EK_ERROR(ek_state.line_no, 
                 "Return statement is not allowed outside a function");
+                exit(1);
             }
             void * data = write_constant(KOROFO);
             $$ = CODEGEN2(constpush, data);
@@ -347,7 +361,7 @@ funcstmt: ISE { begin_scope(); DEBUG_PRINT("matching ise"); }
         }
         ;
 
-paramlist:  /* nothing */ {$$ = 0;}
+paramlist:  /* empty */ {$$ = 0;}
          | COMMA IDENT {
             Objstring * name = make_string($2.start, $2.length);
             add_local(name);
@@ -360,45 +374,43 @@ paramlist:  /* nothing */ {$$ = 0;}
 
 /* patches */
 
-loopatch  : {
-          $$ = code_get_count(&vm.instructions);
-          }
+loopatch  : /* empty */ { $$ = code_get_count(&vm.instructions); }
           ;
 
 funcpatch : { $$ = CODEGEN2(jmp, NULL); }
           ;
 
-loopatch2 : {
+loopatch2 : /* emtpty */{
           $$ = CODEGEN2(jz, NULL);
-          CODEGEN(pop);
+          CODEGEN(ppop);
           }
           ;
 
-ifpatch  : {
+ifpatch  : /* empty */ {
          DEBUG_PRINT("in if patch");
          $$ =CODEGEN2(jz, NULL); 
-         CODEGEN(pop);}
+         CODEGEN(ppop);}
          ;
 
-orpatch  : {
+orpatch  : /* empty */{
          $$ = CODEGEN3(orjmp, NULL, NULL);
          }
          ;
 
-andpatch : {
+andpatch : /* empty */ {
          $$ = CODEGEN3(andjmp, NULL, NULL);
           }
          ;
 
-forpatch: {
+forpatch: /* empty */ {
         $$ =CODEGEN2(forloop, NULL);
         }
         ;
 
-elsepatch: {
+elsepatch: /* empty */ {
          DEBUG_PRINT("in elsepatch");
          $$ = CODEGEN2(jmp, NULL); 
-         CODEGEN(pop);}
+         CODEGEN(ppop);}
          ;
 
 stat_end: NEWLINE
