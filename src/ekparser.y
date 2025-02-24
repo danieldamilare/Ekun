@@ -85,13 +85,15 @@ program: stmtlist {
        | program error stat_end{ DEBUG_PRINT("program error stat_end"); yyerrok; }
        ;
 
-stmt   : expr  
-       { DEBUG_PRINT("stmt: expr"); 
-         CODEGEN(ppop);
-       }
-       | assignstmt
+stmt   :  assignstmt
        { DEBUG_PRINT("stmt: assignstmt"); }
-       | ifstmt
+
+       |  expr  
+
+        { DEBUG_PRINT("stmt: expr"); 
+         CODEGEN(ppop);
+        }
+      | ifstmt
        { DEBUG_PRINT("stmt: ifstmt"); }
        | whilestmt
        { DEBUG_PRINT("stmt: whilestmt"); }

@@ -736,12 +736,14 @@ static void print(Lval value){
                 case OBJ_ARRAY:
                     {
                         Objarray *array = (Objarray *) obj;
+
                         printf("[");
                         for(int i = 0; i <  array->length-1; i++){
                             print(array->valuearray[i]);
                             printf(", ");
                         }
-                        print(array->valuearray[array->length-1]);
+                        if(array->length -1 > 0)
+                            print(array->valuearray[array->length-1]);
                         printf("]");
                     }
                 default:

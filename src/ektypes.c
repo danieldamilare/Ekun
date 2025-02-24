@@ -131,8 +131,8 @@ bool set_array(Objarray * arr, int arg, Lval value){
     if (arg < 0) return false;
     if(arg+1 > arr->capacity){
         resize_array(arr, arg+1);
-        arr->length = arg+1;
     }
+    arr->length = arg+1;
     arr->valuearray[arg] = value;
     return true;
 }
