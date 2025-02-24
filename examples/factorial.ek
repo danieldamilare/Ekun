@@ -1,0 +1,9 @@
+ise(factorial, n) 
+    ti n dogba 1 se
+        pada: 1
+    pari 
+    pada: n * pe(factorial, n-1)
+pari
+
+pe(sope, pe(factorial, 10))
+

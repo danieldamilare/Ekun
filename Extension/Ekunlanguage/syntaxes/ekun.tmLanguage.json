@@ -1,0 +1,154 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+
+	"name": "Ekun",
+	"patterns": [
+        {
+			"include": "#comment"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+      
+        {
+            "include": "#variables"
+        },
+        {
+            "include": "#constant"
+        }
+
+	],
+
+	"repository": { 
+
+        "comment": {
+            "patterns": [
+                {
+                    "name": "comment.line.ekun",
+                    "match": "\\-\\-.*"
+                },
+                {
+                    "name": "comment.block.ekun",
+                    "begin": "\\(\\*",
+                    "end": "\\*\\)",
+                    "patterns": [
+                        { "include": "#comment" }
+                    ]
+
+                }
+            ]
+        },
+		"keywords": {
+			"patterns": [
+                {
+                    "name": "keyword.control.conditional.ekun",
+                    "match": "\\b(ti|bibeeko)\\b"
+			    },
+                {
+                    "name": "keyword.control.loop.ekun",
+                    "match": "\\b(nigbati|fun|ifikun)\\b"
+			    },
+                {
+                    "name": "keyword.control.return.ekun",
+                    "match": "\\b(pada|pada(\\s+)?\\:)\\b"
+			    },
+                {
+                    "name": "keyword.control.ekun",
+                    "match": "\\b(tesiwaju|duro|se|pari)\\b"
+			    },
+                {
+                    "name": "keyword.operator.logical.ekun",
+                    "match": "\\b(ati|tabi)\\b"
+                },
+                {
+                    "name": "keyword.operator.arithmetic.ekun",
+                    "match": "\\+|\\-|\\*|\\/|%|\\^"
+                },
+                {
+                  "name": "meta.function.ekun",
+                  "match": "\\b(ise)\\(\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*([A-Za-z0-9_,\\s]*)\\)",
+                    "captures": {
+                        "1": { "name": "storage.type.function.ekun"},
+                        "2": { "name": "entity.name.function.ekun"},
+                        "3": {
+                            "patterns": [
+                                {
+                                    "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b",
+                                    "name": "variable.parameter.ekun"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "meta.function-call.ekun",
+                    "match": "\\b(pe)\\(\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*(.*)\\)",
+                    "captures": {
+                        "1": { "name": "support.function.ekun" },
+                        "2": { "name": "entity.name.function.ekun" },
+                        "3": {
+                            "patterns": [
+                                {"include": "#constant"},
+                                {"include": "#strings"},
+                                {"include": "#variables"}
+                            ]
+                        }
+                    }
+                },
+
+                {
+                    "name": "keyword.operator.comparison",
+                    "match": "==|!=|\\bdogba\\b|<|<=|>|>="
+                },
+                {
+                    "name": "storage.type.ekun",
+                    "match": "\\b(lati|fi|de|si|ifikun)\\b"
+                }
+            ]
+		},
+
+        "constant": {
+            "patterns": [
+                {
+                    "name": "constant.language.null.ekun",
+                    "match": "korofo"
+                },
+                {
+                    "name": "constant.language.boolean.ekun",
+                    "match": "\\b(ooto|iro)\\b"
+                },
+                {
+                    "name": "constant.language.numeric.float.ekun",
+                    "match": "\\b([0-9]+(\\.[0-9]+)?|[.][0-9]+)\\b"
+                }
+
+            ]
+        },
+
+
+        "variables": {
+            "patterns": [
+                {
+                    "name": "variable.other.ekun",
+                    "match": "\\b[A-Za-z_][A-Za-z0-9_]*"
+                }
+            ]
+        },
+
+        "strings": {
+			"name": "string.quoted.double.ekun",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.ekun",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.ekun"
+}

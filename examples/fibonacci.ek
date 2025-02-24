@@ -1,0 +1,10 @@
+ise(fibonacci, n) 
+    ti n < 2 se
+        pada: n
+    pari
+    pada: pe(fibonacci, (n -1)) + pe(fibonacci, (n -2))
+pari
+
+fun i lati 1 de 20 se 
+    pe(sope, "fibonaci", i, "je", pe(fibonacci, i))
+pari

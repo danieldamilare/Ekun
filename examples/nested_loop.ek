@@ -1,0 +1,5 @@
+fun i lati 0 de 100 se
+    fun j lati 100 de 200 se
+        pe(sope, i, ",", j);
+    pari
+pari

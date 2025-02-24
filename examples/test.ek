@@ -1,0 +1,9 @@
+fi 20 si x
+ti \
+    x < 20 \
+    tabi x > 20 \
+        se 
+        pe(sope, x, "o je 20")
+bibeeko \
+        pe(sope, x ,"je 20")
+pari

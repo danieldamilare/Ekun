@@ -1,0 +1,87 @@
+(*
+Tic-Tac-Toe program
+*)
+
+fi [" ", " ", " ", " ", " ", " ", " ", " ", " "] si board
+fi "X" si current_player
+
+ise(print_board)
+    pe(ko_oro, board[0], "|", board[1], "|", board[2])
+    pe(sope)
+    pe(ko_oro, "--+---+--")
+    pe(sope)
+    pe(ko_oro, board[3], "|", board[4], "|", board[5])
+    pe(sope)
+    pe(ko_oro, "--+---+--")
+    pe(sope)
+    pe(ko_oro, board[6], "|", board[7], "|", board[8])
+    pe(sope)
+pari
+
+ise(check_winner) 
+    ti(                                                                               \
+        (board[0] == board[1] ati board[1] == board[2] ati board[0] != " ") tabi      \ -- check row 1
+        (board[3] == board[4] ati board[4] == board[5] ati board[3] != " ") tabi      \ -- check row 2
+        (board[6] == board[7] ati board[7] == board[8] ati board[6] != " ") tabi      \ -- check row 3
+        (board[0] == board[3] ati board[3] == board[6] ati board[0] != " ") tabi      \ -- check column 1
+        (board[1] == board[4] ati board[4] == board[7] ati board[1] != " ") tabi      \ -- check column 2
+        (board[2] == board[5] ati board[5] == board[8] ati board[2] != " ") tabi      \ -- check column 3
+        (board[0] == board[4] ati board[4] == board[8] ati board[0] != " ") tabi      \ -- check diagonal 
+        (board[2] == board[4] ati board[4] == board[6] ati board[2] != " ")) se         -- check diagonal
+        pada: ooto
+    pari
+    pada: iro
+pari
+
+ise(check_draw)
+    fi 0 si i
+    nigbati i < 9 se
+        ti board[i] == " " se --if there are still empty space no draw yet
+            pada: iro
+        pari
+    fi i+1 si i
+    pari
+    pada: ooto
+pari
+
+ise(switch_player)
+    ti current_player dogba "X" se
+        fi "O" si current_player
+    bibeeko se
+        fi "X" si current_player
+    pari
+pari
+
+ise(play_game)
+    nigbati ooto se -- infinite loop
+        pe(print_board)
+        pe(ko_oro, "Player ", current_player, ", enter a position (0-8): ")
+        fi 0 si position
+        pe(sope)
+        
+        ti board[position] == " " se
+            fi current_player si board[position]
+
+            ti pe(check_winner) se
+                pe(print_board)
+                pe(ko_oro, "Player ", current_player, " wins!")
+                pe(sope)
+                pada
+
+            bibeeko ti pe(check_draw) se
+                pe(print_board)
+                pe(ko_oro, "It's a draw!")
+                pe(sope)
+                pada
+
+            pe(switch_player)
+        bibeeko se
+            pe(ko_oro, "Invalid move, try again!")
+            pe(sope)
+        pari
+    pari
+pari
+
+(* Start the game *)
+pe(play_game)
+

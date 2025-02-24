@@ -1,0 +1,40 @@
+{
+  "name": "vscode-ekun",
+  "displayName": "Ekun-vs-code-extension",
+  "description": "A VS code extension for Yoruba programming language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.92.0"
+  },
+  "activationEvents": [
+      "onLanguage:ekun"
+  ],
+
+  "categories": [
+    "Programming Languages"
+  ],
+
+  "main": "./src/extension.js",
+  "contributes": {
+    "languages": [{
+      "id": "ekun",
+      "aliases": ["Ekun", "ekun"],
+      "extensions": [".ek"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "ekun",
+      "scopeName": "source.ekun",
+      "path": "./syntaxes/ekun.tmLanguage.json"
+    }]
+  },
+
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./"
+  },
+  "devDependencies": {
+    "typescript": "^4.0.3",
+    "vscode": "^1.1.37"
+  }
+}

@@ -1,0 +1,25 @@
+(*
+A program to generate mandelbrot set
+*)
+fi 0 si pixel1
+nigbati pixel1 <= 24 se
+    fi pixel1/12 - 1 si y
+    fi 0 si j
+    nigbati j <= 80 se
+        fi j / 30 - 2 si x
+        fi x si x0
+        fi y si y0
+        fi 0 si iter
+        nigbati iter < 11 ati x0 * x0 + y0 * y0 <= 4 se
+            fi (x0 * x0) - (y0 * y0) + x si x1
+            fi 2 * x0 * y0 + y si y1
+            fi x1 si x0
+            fi y1 si y0
+            fi iter + 1 si iter
+        pari
+        pe(ko_oro, " .-:;+=xX$& "[iter])
+        fi j + 1 si j
+    pari
+    pe(sope)
+    fi pixel1 + 1 si pixel1
+pari

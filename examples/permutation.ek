@@ -1,0 +1,6 @@
+(* 
+    program to generate permutaion of numbers
+*)
+
+ise(permutation, array) 
+    
