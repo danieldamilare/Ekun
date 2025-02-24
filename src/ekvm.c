@@ -48,22 +48,26 @@ static void print(Lval value);
 
 
 /* pop current value from stack  */
-void ppop(void){
+inline void ppop(void){
     pop();
 }
 
-void push(Lval val){
+inline void push(Lval val){
     stack_append(&vm.stack, val);
 }
 
 
-Lval peek(int i){
+inline Lval peek(int i){
     return vm.stack.data[vm.stack.count - 1 -i];
 }
 
 /* builin function */
 static Lval bltin_clock(int arg_count, Lval * args){
     return CREATE_NUM((double)clock()/ CLOCKS_PER_SEC);
+}
+
+static Lval bltin_len(int arg_count, Lval * args){
+
 }
 
 static Lval bltin_print(int arg_count, Lval * args){
@@ -124,7 +128,7 @@ void vm_cleanup(void){
 }
 
 
-intptr_t write_code(void * data, int line){
+inline intptr_t write_code(void * data, int line){
     return code_append(&vm.instructions, data, line);
 }
 
@@ -185,7 +189,7 @@ static void concat_string(void){
     push(CREATE_STR(new_str));
 }
 
-void constpush(void){
+inline void constpush(void){
     Lval  val = * (Lval *) vm_advance();
     push(val);
 }
@@ -271,7 +275,7 @@ void index_push(void){
 }
 
 /* store global variable */
-void gvarstore(void){
+inline void gvarstore(void){
     Objstring * var = GET_STR(*((Lval *)vm_advance()));
     table_put(&vm.globals, var, peek(0));
     pop();
@@ -289,18 +293,18 @@ void gvarpush(void){
 }
 
 /* store local variable */
-void lvarpush(void){
+inline void lvarpush(void){
     intptr_t slot = (intptr_t) vm_advance();
     push(GET_STACK_POS(slot));
 }
 
-void lvarstore(void){
+inline void lvarstore(void){
     intptr_t slot = (intptr_t) vm_advance();
     SET_STACK_POS(slot, peek(0));
 }
 
 /* control flow functions */
-void jz(void){
+inline void jz(void){
     intptr_t num = (intptr_t) vm_advance();
     /* printf("regained patch: patch is now: %ld\n", num); */
     /* printf("condition is %s\n", is_false(peek(0))? "false": "true"); */
@@ -311,7 +315,7 @@ void jz(void){
 }
 
 
-void jmp(void){
+inline void jmp(void){
     intptr_t num = (intptr_t) vm_advance();
     /* printf("regained patch: patch is now: %ld\n", num); */
     vm.fp->pc = &vm.instructions.data[num];
@@ -575,7 +579,7 @@ void lt(void){
     push(CREATE_BOOL(num1 < num2));
 }
 
-void neg(void){
+inline void neg(void){
     Lval num = peek(0);
 
     if(!CHECK_TYPE(num, LVAL_NUM)){
@@ -585,11 +589,11 @@ void neg(void){
     vm.stack.data[vm.stack.count -1] = CREATE_NUM(-GET_NUM(num));
 }
 
-void ooto(void){
+inline void ooto(void){
     push(CREATE_BOOL(true));
 }
 
-void iro(void){
+inline void iro(void){
     push(CREATE_BOOL(false));
 }
 
@@ -667,7 +671,7 @@ static void print(Lval value){
     }
 }
 
-void * write_constant(Lval value){
+inline void * write_constant(Lval value){
     return store_constant(&vm.instructions, value);
 }
 
@@ -686,3 +690,4 @@ double check_err(double d){
     }
     return d;
 }
+
