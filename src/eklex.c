@@ -147,7 +147,7 @@ static Token token_string(void){
     }
 
     if(peek() == '\n' || peek() == '\0'){
-        EK_ERROR(*lex.line_no, "Sting unterminated before %s",
+        EK_ERROR(*lex.line_no, "String unterminated before %s",
                 (peek() == '\n')? "newline" : "end of file");
         exit(1);
     }

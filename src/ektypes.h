@@ -74,6 +74,8 @@ typedef struct {
 
 #define CREATE_OBJ(value) ((Lval){LVAL_OBJ, .val.obj = (Object *) (value)})
 
+#define IS_ITER(value) (IS_ARR(value) || IS_STR(value))
+
 
 #define GET_NUM(value) ((value).val.number)
 #define GET_BOOL(value) ((value).val.boolean)
@@ -103,6 +105,7 @@ Objarray * make_array(int arg_count, Lval *start);
 
 bool get_string_index(Objstring * iter, Lval index, Lval * value);
 bool get_array_index(Objarray * iter, Lval index, Lval * value);
+bool set_array(Objarray * arr, int index, Lval value);
 
 bool is_false(Lval val);
 bool is_iter(Lval val);

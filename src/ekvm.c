@@ -79,6 +79,44 @@ static Lval bltin_print(int arg_count, Lval * args){
     return  KOROFO;
 }
 
+
+static Lval bltin_num(int arg_count, Lval * args){
+    /* builtin function for converting value to number */
+    Lval value = *args;
+    Lval return_val= KOROFO;
+    if(CHECK_TYPE(value, LVAL_NUM))
+        return_val =  value;
+    else if(CHECK_TYPE(value, LVAL_BOOL))
+        return_val = CREATE_NUM(value.val.boolean);
+    else if(IS_STR(value)){
+        Objstring * str = GET_STR(value);
+        char * endptr;
+        double number = strtod(str->ch, &endptr);
+        if(*endptr == '\0') //result in conversion
+            return_val = CREATE_NUM(number);
+    }
+    return return_val;
+}
+
+
+static Lval builtin_getline(int arg_count, Lval * args){
+    Lval result = KOROFO;
+    for(int i = 0; i < arg_count; i++){
+        print(args[i]);
+    }
+    char * input = NULL;
+    size_t len = 0;
+    int read_len = getline(&input, &len, stdin);
+    if(read_len == -1){
+        EK_FREE(input);
+    } else{
+        result = CREATE_OBJ(make_string(input, (int)len));
+        free(input);
+    }
+    return result;
+}
+
+
 /* print without new line */
 static Lval bltin_print2(int arg_count, Lval * args){
     for(int i = 0; i < arg_count-1; i++){
@@ -92,12 +130,18 @@ static Lval bltin_print2(int arg_count, Lval * args){
 
 void vm_init(void){
     stack_init(&vm.stack);
+    vm.stack.capacity = 256;
+    stack_resize(&vm.stack);
     code_init(&vm.instructions);
     init_table(&vm.globals);
     init_table(&vm.strings);
     add_builtin("igba", bltin_clock);
     add_builtin("sope", bltin_print);
     add_builtin("ko_oro", bltin_print2);
+    add_builtin("si_nomba", bltin_num);
+    add_builtin("gba_oro", builtin_getline);
+    add_builtin("ka", builtin_getline);
+
     vm.objects = NULL;
     vm.fp = vm.frame;
 }
@@ -112,6 +156,12 @@ static void free_objects(void){
             case OBJ_BLTIN:
                 free((Objbltin *) obj);
                 break;
+            case OBJ_ARRAY:
+                {
+                    Objarray * array = (Objarray *) obj;
+                    EK_FREE(array->valuearray);
+                    EK_FREE(array);
+                }
             default:
                 free(obj);
         }
@@ -189,10 +239,52 @@ static void concat_string(void){
     push(CREATE_STR(new_str));
 }
 
+void nilpush(void){
+    push(KOROFO);
+}
+
 inline void constpush(void){
     Lval  val = * (Lval *) vm_advance();
     push(val);
 }
+
+
+bool index_store(Lval iter, Lval index, Lval to_assign){
+    //string is immutable, index must be number
+    if (IS_ITER(iter) == false || IS_STR(iter) || !CHECK_TYPE(index, LVAL_NUM))
+        return false;
+
+    if(IS_ARR(iter)){
+        return set_array(GET_ARR(iter), GET_NUM(index), to_assign);
+    }
+
+    return false;
+}
+
+
+#define STORE_ITER(iter, index, to_assign) do {\
+    if(!index_store(iter, index, to_assign)){\
+        if(!IS_ITER(iter) || IS_STR(iter)){\
+            vm.stack.count -= 3;\
+            EK_ERROR(get_err_no(),\
+                    "Error: attempt to assign to index of unsupported type  '%s'", \
+                    which_type(iter));\
+        exit(1);\
+        }\
+        if(CHECK_TYPE(index, LVAL_NUM) == false){\
+            vm.stack.count -= 3;\
+            EK_ERROR(get_err_no(), \
+                    "Error: index must be of type noomba not %s", which_type(index));\
+            exit(1);\
+        }\
+        else{\
+            vm.stack.count -=3;\
+            EK_ERROR(get_err_no(), \
+                    "Error: Index %d out of range", (int)GET_NUM(index));\
+            exit(1);\
+        }\
+    }\
+} while(0)
 
 
 void index_store_1(void){
@@ -200,13 +292,16 @@ void index_store_1(void){
     Lval index = peek(1);
     Lval iter = peek(2);
 
-    if (is_iter(iter) == false){
-        vm.stack.count -= 3;
-        EK_ERROR(get_err_no(), "Error: attempt to index a '%s' value", which_type(iter));
-        exit(1);
-    }
+    STORE_ITER(iter, index, to_assign);
 }
 
+void index_store_2(void){
+    Lval index = peek(0);
+    Lval iter = peek(1);
+    Lval to_assign = peek(2);
+    STORE_ITER(iter, index, to_assign);
+}
+#undef STORE_ITER
 
 Lval get_index(Lval iter, Lval index){
     int not_num = CHECK_TYPE(index, LVAL_NUM) == false;
@@ -221,7 +316,7 @@ Lval get_index(Lval iter, Lval index){
             Lval value;
         if (!get_string_index(GET_STR(iter),index, &value)){
             EK_ERROR(get_err_no(), 
-                    "index out of range of type 'oro'");
+                    "Error: index %d out of range of type 'oro'", (int)GET_NUM(index));
             exit(1);
         }
         return value;
@@ -230,7 +325,7 @@ Lval get_index(Lval iter, Lval index){
 
         if(!get_array_index(GET_ARR(iter), index, &value)){
             EK_ERROR(get_err_no(), 
-                    "index out of range of type 'apeere'");
+                    "Error: index '%d' out of range of type 'apeere'", (int)GET_NUM(index));
             exit(1);
         }
         return value;
@@ -246,23 +341,10 @@ void build_array(void){
     push(obj);
 }
 
-void index_store_2(void){
-    Lval index = peek(0);
-    Lval iter = peek(1);
-    Lval to_assign = peek(2);
-     if (is_iter(iter) == false){
-        vm.stack.count -= 3;
-        EK_ERROR(get_err_no(), 
-                "Error: attempt to index a '%s' value", which_type(iter));
-        exit(1);
-    }
-
-}
-
 void index_push(void){
     Lval index = pop();
     Lval iter = pop();
-    if (is_iter(iter)) {
+    if (IS_ITER(iter)) {
         push(get_index(iter, index));
     }
     else{

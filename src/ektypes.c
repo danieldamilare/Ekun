@@ -7,6 +7,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+#define ARR_INIT 8
+#define ARR_RATE 1.5
+
+
 static const char *  Type_info[] = {
     [LVAL_NIL] = "korofo",
     [LVAL_NUM] = "noomba",
@@ -91,25 +95,48 @@ static bool is_false_obj(Object * obj){
     return false;
 }
 
+
+static void resize_array(Objarray * arr, int suggest){
+    int length = arr->length;
+    int new_length = length == 0 ? ARR_INIT : length;
+    while(new_length < suggest )
+        new_length *= ARR_RATE;
+   arr->valuearray= realloc(arr->valuearray, new_length * sizeof(Lval));
+    for(int i = length; i < new_length; i++){
+        arr->valuearray[i] = KOROFO;
+    }
+    arr->capacity = new_length;
+}
+
+
 Objarray * make_array(int arr_count, Lval * start){
     Objarray * arr = (Objarray *)make_obj(sizeof(*arr), OBJ_ARRAY);
+    int capacity = arr_count < ARR_INIT? ARR_INIT : arr_count * ARR_RATE;
+    arr->length = 0;
+    arr->capacity = 0;
+    resize_array(arr, capacity);
 
-#define ARR_INIT 8
-#define ARR_RATE 1.5
-
-    int capacity = arr_count < ARR_INIT ? ARR_INIT : arr_count * ARR_RATE;
-
-    arr->valuearray = ek_malloc(capacity * sizeof(Lval));
     for(int i = 0; i < arr_count; i++){
         arr->valuearray[i] = start[i];
     }
     arr->capacity = capacity;
     arr->length = arr_count;
     return arr;
-
-#undef ARR_INIT
-#undef ARR_RATE
 }
+
+
+bool set_array(Objarray * arr, int arg, Lval value){
+    int length = arr->length;
+    arg = arg < 0 ? length + arg: arg;
+    if (arg < 0) return false;
+    if(arg+1 > arr->capacity){
+        resize_array(arr, arg+1);
+        arr->length = arg+1;
+    }
+    arr->valuearray[arg] = value;
+    return true;
+}
+
 
 bool get_string_index(Objstring * iter, Lval index, Lval * value){
     int length = iter->length;
@@ -149,13 +176,6 @@ bool is_false(Lval val){
     return false;
 }
 
-bool is_iter(Lval value){
-    if (value.type != LVAL_OBJ) return false;
-    int type = value.val.obj->type;
-    if (type == OBJ_STRING || type == OBJ_ARRAY)
-        return true;
-    return false;
-}
 
 const char * which_type(Lval obj){
     if(obj.type == LVAL_BOOL){

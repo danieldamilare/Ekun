@@ -4,8 +4,9 @@
 #define INIT_SIZE 8
 #define RESIZE_FACTOR 2
 
-#define RESIZE(cap) ((cap)? (cap) + (cap) * RESIZE_FACTOR: INIT_SIZE)
+#define RESIZE(cap) ((cap)? (cap) * RESIZE_FACTOR: INIT_SIZE)
 
+/* yet another macro attrocity */
 #define CREATE_DARRAY(obj_type, type_name)                      \
     typedef struct {                                            \
         int count;                                              \

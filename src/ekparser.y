@@ -142,7 +142,7 @@ expr    : NOOMBA
         | LBRACKET loopatch arglist RBRACKET
         {
             $$ = $2;
-            CODEGEN2(build_array, (void *)$3);
+            CODEGEN2(build_array, (void *)(intptr_t)$3);
         }
 
         | funccall
@@ -482,6 +482,7 @@ static void add_local(Objstring * str){
 static intptr_t check_local(Objstring * name){
     for (int i = current.local_count -1; i >= 0; i--){
         Local * local = &current.locals[i];
+        if (local->depth < current.scope_depth) return -1;
         if (name == local->name){
             return i;
         }
