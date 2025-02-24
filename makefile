@@ -1,5 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -pedantic -lm -g -p
+CFLAGS = -Wall -Wextra -g -lm
+PROFFLAG = -p
 DEBUG_FLAGS = -DDEBUG
 SRC_DIR = ./src
 OBJ_DIR = ./obj
@@ -23,9 +24,12 @@ all: $(PARSER_OBJ) $(TARGET)
 debug: CFLAGS += $(DEBUG_FLAGS)
 debug: clean all
 
+wasm: 
+	$(MAKE) -f wasm.makefile
+
 $(PARSER_OBJ): $(PARSER_SRC)
 	@mkdir -p $(OBJ_DIR)
-	cd $(SRC_DIR) && yacc -d ekparser.y
+	cd $(SRC_DIR) && yacc -d -t ekparser.y
 	mv $(SRC_DIR)/y.tab.c $(SRC_DIR)/ekparser.c
 	$(CC) -c $(SRC_DIR)/ekparser.c $(CFLAGS) -o $(OBJ_DIR)/ekparser.o
 
@@ -38,4 +42,6 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS)
 
 clean:
 	rm -rf $(OBJ_DIR) $(TARGET) $(SRC_DIR)/ekparser.c $(SRC_DIR)/y.tab.h
+	rm -rf EKUN_WASM
+
 

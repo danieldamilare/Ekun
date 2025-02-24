@@ -142,7 +142,7 @@ expr    : NOOMBA
         | LBRACKET loopatch arglist RBRACKET
         {
             $$ = $2;
-            CODEGEN2(build_array, $3);
+            CODEGEN2(build_array, (void *)$3);
         }
 
         | funccall
@@ -366,10 +366,10 @@ paramlist:  /* empty */ {$$ = 0;}
             Objstring * name = make_string($2.start, $2.length);
             add_local(name);
             $$ = 1; }
-         | IDENT paramlist { 
-            Objstring * name = make_string($1.start, $1.length);
+         |  paramlist COMMA IDENT { 
+            Objstring * name = make_string($3.start, $3.length);
             add_local(name);
-            $$ = $2 + 1;}
+            $$ =$1 + 1;}
          ;
 
 /* patches */
@@ -541,3 +541,4 @@ int compile(void){
 void yyerror(char * message){
     EK_ERROR(ek_state.line_no, "%s", message);
 }
+

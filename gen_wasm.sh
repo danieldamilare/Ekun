@@ -21,3 +21,5 @@ for file in ${FILES[@]};  do
 done
 cp "${SRC}/wasm_files/ekun_wasm.c" "${NEW_DIR}/ekun.c"
 cp "${SRC}/wasm_files/ekun_wasm.h" "${NEW_DIR}/ekun.h"
+
+#set emascripte export

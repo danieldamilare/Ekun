@@ -21,6 +21,7 @@ all: gen_wasm $(PARSER_OBJ) $(TARGET)
 
 gen_wasm:
 	@./gen_wasm.sh || { echo "Failed to generate WASM files"; exit 1; }
+	@. ~/emsdk/emsdk_env.sh
 
 $(PARSER_OBJ): $(PARSER_SRC)
 	@mkdir -p $(OBJ_DIR)
@@ -38,4 +39,5 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS)
 
 clean:
 	rm -rf $(OBJ_DIR) $(TARGET) $(SRC_DIR)/ekparser.c $(SRC_DIR)/y.tab.h
+
 
