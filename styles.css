@@ -1,0 +1,296 @@
+/* Base styles */
+body {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'Segoe UI', 'SF Pro Text', Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+    margin: 0;
+    line-height: 1.6;
+}
+
+h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    color: #00aaff;
+    font-weight: 400;
+}
+
+/* Toolbar styles */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 70%;
+    margin: 0 auto 15px auto;
+}
+
+.control-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Button and select styles */
+select, button {
+    background-color: #2d2d2d;
+    color: #d4d4d4;
+    border: 1px solid #3e3e3e;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 0.9em;
+    transition: all 0.2s;
+    outline: none;
+    cursor: pointer;
+}
+
+select {
+    min-width: 200px;
+}
+
+select:focus, button:focus {
+    border-color: #00aaff;
+    box-shadow: 0 0 0 2px rgba(0, 170, 255, 0.25);
+}
+
+/* CodeMirror customization */
+.CodeMirror {
+    height: 400px !important;
+    /* width: 70%; !important; */
+    /* max-width: 70%; !important; */
+    margin: 0 auto;
+    font-family: 'Cascadia Code', 'Fira Code', 'Source Code Pro', 'Consolas', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.CodeMirror pre {
+    text-align: left !important;
+}
+
+/* Action bar styles */
+#actionBar {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.runbutton {
+    background-color: #00aaff;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.95em;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.runbutton:hover {
+    background-color: #0090e0;
+    transform: translateY(-1px);
+}
+
+/* Output container styles */
+#outputContainer {
+    width: 70%;
+    margin: 20px auto;
+    padding: 15px;
+    background-color: #252526;
+    border: 1px solid #3e3e3e;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#outputHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #3e3e3e;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+#outputTitle {
+    font-size: 0.9em;
+    color: #858585;
+    font-weight: 500;
+}
+
+#output {
+    text-align: left;
+    color: #d4d4d4;
+    font-family: 'Cascadia Code', 'Fira Code', 'Source Code Pro', 'Consolas', monospace;
+    font-size: 0.8em;
+    white-space: no-wrap;
+    min-height: 100px;
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding: 10px 0;
+}
+
+/* Status bar styles */
+#statusBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 70%;
+    margin: 15px auto 0 auto;
+    padding: 8px 15px;
+    background-color: #007acc;
+    color: #fff;
+    font-size: 0.85em;
+    border-radius: 0 0 6px 6px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .CodeMirror, #outputContainer, .toolbar, #statusBar {
+        width: 85%;
+    }
+
+    #output{
+        font-size: 0.75em;
+    }
+}
+
+@media (max-width: 768px) {
+    .CodeMirror, #outputContainer, .toolbar, #statusBar {
+        width: 95%;
+    }
+    
+    .toolbar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .control-group {
+        width: 100%;
+        justify-content: center;
+    }
+
+    #output{
+        font-size: 0.65em;
+    }
+}
+
+/* Custom syntax highlighting for Yoruba */
+.cm-keyword { color: #569cd6 !important; font-weight: bold; }
+.cm-string { color: #ce9178 !important; }
+.cm-number { color: #b5cea8 !important; }
+.cm-comment { color: #6a9955 !important; font-style: italic; }
+
+/* Add these styles to your existing CSS file */
+
+/* Notification styles */
+#notificationContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.notification {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.3s ease-in-out;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-success {
+    background-color: #4caf50;
+    color: white;
+}
+
+.notification-info {
+    background-color: #2196f3;
+    color: white;
+}
+
+.notification-warning {
+    background-color: #ff9800;
+    color: white;
+}
+
+.notification .close-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 0.8em;
+    padding: 0;
+    opacity: 0.7;
+}
+
+.notification .close-btn:hover {
+    opacity: 1;
+}
+
+/* Autocomplete styles */
+.CodeMirror-hints {
+    position: absolute;
+    z-index: 10;
+    overflow: hidden;
+    list-style: none;
+    margin: 0;
+    padding: 2px;
+    border-radius: 3px;
+    border: 1px solid #3e3e3e;
+    background: #252526;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    max-height: 20em;
+    overflow-y: auto;
+    font-family: 'Cascadia Code', 'Fira Code', 'Source Code Pro', 'Consolas', monospace;
+}
+
+.CodeMirror-hint {
+    margin: 0;
+    padding: 5px 10px;
+    border-radius: 2px;
+    white-space: pre;
+    color: #d4d4d4;
+    cursor: pointer;
+}
+
+li.CodeMirror-hint-active {
+    background: #007acc;
+    color: white;
+}
+
+/* Theme selector styles */
+#themeSelector {
+    min-width: 150px;
+    background-color: #2d2d2d;
+    color: #d4d4d4;
+    border: 1px solid #3e3e3e;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 0.9em;
+}
+
+#themeSelector:focus {
+    border-color: #00aaff;
+    box-shadow: 0 0 0 2px rgba(0, 170, 255, 0.25);
+}
