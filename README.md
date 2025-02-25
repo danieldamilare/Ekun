@@ -1,3 +1,4 @@
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 # Yoruba Programming Language  
 
@@ -23,10 +24,15 @@ pe(ikinni, ["Damilare", "Daniel", "Olúṣẹ́gun"])
 ✅ **Yoruba Syntax** – Uses Yoruba-based keywords and structure for easier learning.  
 ✅ **Simple Data Types** – Supports integers, floating-point numbers, and strings.  
 ✅ **Extensibility** – Includes a Visual Studio Code extension and WebAssembly support.  
-✅ **Online IDE** – Try the language online [here]("https://danieldamilare.github.io/Ekun").  
+✅ **Online IDE** – [Try it in your browser](https://danieldamilare.github.io/ekun).  
 
 ## Building and Running  
+### Prerequisite
+- GCC/Clang compiler
+- Make build system
+-
 To build the project locally, follow these steps:  
+
 
 ### Clone the Repository  
 ```sh
@@ -36,9 +42,9 @@ Navigate into the project and build it:
 ```sh
 cd Ekun && make
 ```  
-To build the WebAssembly version:  
+To compile the WebAssembly   
 ```sh
-make clean
+make wasm
 ```  
 
 ## Getting Started  
