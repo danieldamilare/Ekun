@@ -16,6 +16,7 @@ A program in the language is divided into logical lines. Logical lines are termi
     ise    se     fi      bibeeko
     dogba  si     pada    agbegbe
     ooto   iro    ko      ita
+    de     ifikun
     nigba
     ```
     The following strings denotes other tokens 
@@ -25,7 +26,7 @@ A program in the language is divided into logical lines. Logical lines are termi
 	>= (GTEQ)  > (GT)  ^(exponent)
 	```
 	
-- **Comments**: Comments and white space (space tab) are by default discarded from the program by the lexical analyzer. A comment follows lua convention for denoting comments in lua, using \-\- for a single line comment and \-\-\[\[ \]\] for  mulitlines comments.
+- **Comments**: Comments and white space (space tab) are by default discarded from the program by the lexical analyzer. A comment follows lua convention for denoting comments in lua, using \-\- for a single line comment and \(\* ... \*\) for  mulitlines comments.
 
 - **Data Types:** 
 	- **Basic Types:**
@@ -47,7 +48,8 @@ The basic expression are:
 expr:    noomba
     | 	 ooro
     |    variable
-    |    function (arg)
+    |    '['exprlist']'
+    |    pe(function ,arg)
     |    expr binop expr
     |    unop expr
     |    ( expr )
@@ -77,25 +79,25 @@ expr:    noomba
 	```
 	ti <cond> se
 		...
-	pari ise
+	pari
 	```
 	it can also have supporting else statement written 
 	```
 	ti <cond> se
 		...
-	bibeeko 
+	bibeeko  se
 		...
-	pari ise
+	pari 
 	```
 	both statement can be combined to form multiple if-else statement
 	```
 	ti <cond> se
 		...
-	bibeeko ti <cond>
+	bibeeko ti <cond> se
 		...
-	bibeeko ti <cond>
+	bibeeko  se
 		...
-	pari ise
+	pari 
 	```
 -	**Loop:**
 	There are two syntax flavours of loops:
@@ -103,34 +105,34 @@ expr:    noomba
 		```
 		nigbati <cond> se
 		...
-		pari ise
+		pari
 		```
 	- The other type of loop has a similar syntax with the for loop
 		```
-		fun <var> lati <start> si <end> ipele <step> se
+		fun <var> lati <start> de <end> (ifikun <step>) se
 			...
-		pari ise
+		pari
 		```
 		
 -	**Function**
 	The syntax for defining function is 
 	```
-	ise <func_name>(parameters) se
+	ise (<func_name>, parameters) se
 		...
-	pari ise
+	pari 
 	```
 	A function is an expression that can either return a value or not. Function has a keyword ***pada*** which can only be used in a function to return a value or to make an early exit from the function.
 	The following examples show how to use the ***pada*** keyword.
 	```
-	ise aropo(x, y) se
+	ise (aropo, x, y)
 		pada: x + y
-	pari ise
+	pari 
 	```
 	
 	```
 	ise ikinni(oruko) se
 		ko("Bawo ni" + oruko)
-	pari ise
+	pari 
 	```
 	Variables defined in a function are local to the function unless it is stated to be global
 	
@@ -202,20 +204,22 @@ A string can be concatenated with other strings using the ```+``` operator. Stri
               | <return_statement>
 
 <assignment> ::= <identifier> "=" <expression>
+               |  <expression>"["<expression"]" = <expression>
                | "fi" <expression> "si" <identifier>
+               | "fi" <expression> "si" <expression>"["<expression"]"
 
-<if_statement> ::= "ti" <expression> "se" <statement_list> "pari" "ise"
-                 | "ti" <expression> "se" <statement_list> "bibeeko" <statement_list> "pari" "ise"
-                 | "ti" <expression> "se" <statement_list> ("bibeeko" "ti" <expression> "se" <statement_list>)* "pari" "ise"
+<if_statement> ::= "ti" <expression> "se" <statement_list> "pari" 
+                 | "ti" <expression> "se" <statement_list> "bibeeko" <statement_list> "pari" 
+                 | "ti" <expression> "se" <statement_list> ("bibeeko" "ti" <expression> "se" <statement_list>)* "pari" 
 
-<while_statement> ::= "nigba" "ti" <expression> "se" <statement_list> "pari" "ise"
+<while_statement> ::= "nigbati" <expression> "se" <statement_list> "pari" 
 
-<for_statement> ::= "fun" <identifier> "nigba" <expression> "si" <expression> ("ka" <expression>)? "se" <statement_list> "pari" "ise"
+<for_statement> ::= "fun" <identifier> "lati" <expression> "de" <expression> ("ifkiun" <expression>)? "se" <statement_list> "pari" 
 
-<function_definition> ::= "ise" <identifier> "(" <parameter_list>? ")" "se" <statement_list> "pari" "ise"
+<function_definition> ::=  ise"(" <identifier> <parameter_list>? ")" <statement_list> "pari" 
 
-<parameter_list> ::= <identifier>
-                  | <identifier> "," <parameter_list>
+<parameter_list> ::= "," <identifier>
+                  | <identifier> <parameter_list>
 
 <expression_statement> ::= <expression>
 
@@ -223,16 +227,19 @@ A string can be concatenated with other strings using the ```+``` operator. Stri
 
 <expression> ::= <noomba>
               | <oro>
+              | <ooto>
+              | <iro>
               | <identifier>
+              | "["<expression"]"
               | <function_call>
               | <expression> <binary_operator> <expression>
               | <unary_operator> <expression>
               | "(" <expression> ")"
 
-<function_call> ::= <identifier> "(" <argument_list>? ")"
+<function_call> ::= pe"(" <identifier> <argument_list>? ")"
 
-<argument_list> ::= <expression>
-                 | <expression> "," <argument_list>
+<argument_list> ::= "," <expression>
+                 | <expression>  <argument_list>
 
 <binary_operator> ::= "+" | "-" | "*" | "/" | "%" | "^" | ">" | "<" | "=="
                    |  ">=" | "<=" | "ati" | "tàbí"pe
@@ -248,4 +255,3 @@ x dogba y					--equal comparison
 x ko dogba y				--not equal comparison
 ```
 More experimental features will be added to test the how intuitive the usability of the language for a Yoruba speaker
-	
