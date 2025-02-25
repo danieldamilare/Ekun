@@ -191,3 +191,106 @@ select:focus, button:focus {
 .cm-string { color: #ce9178 !important; }
 .cm-number { color: #b5cea8 !important; }
 .cm-comment { color: #6a9955 !important; font-style: italic; }
+
+/* Add these styles to your existing CSS file */
+
+/* Notification styles */
+#notificationContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.notification {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.3s ease-in-out;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-success {
+    background-color: #4caf50;
+    color: white;
+}
+
+.notification-info {
+    background-color: #2196f3;
+    color: white;
+}
+
+.notification-warning {
+    background-color: #ff9800;
+    color: white;
+}
+
+.notification .close-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 0.8em;
+    padding: 0;
+    opacity: 0.7;
+}
+
+.notification .close-btn:hover {
+    opacity: 1;
+}
+
+/* Autocomplete styles */
+.CodeMirror-hints {
+    position: absolute;
+    z-index: 10;
+    overflow: hidden;
+    list-style: none;
+    margin: 0;
+    padding: 2px;
+    border-radius: 3px;
+    border: 1px solid #3e3e3e;
+    background: #252526;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    max-height: 20em;
+    overflow-y: auto;
+    font-family: 'Cascadia Code', 'Fira Code', 'Source Code Pro', 'Consolas', monospace;
+}
+
+.CodeMirror-hint {
+    margin: 0;
+    padding: 5px 10px;
+    border-radius: 2px;
+    white-space: pre;
+    color: #d4d4d4;
+    cursor: pointer;
+}
+
+li.CodeMirror-hint-active {
+    background: #007acc;
+    color: white;
+}
+
+/* Theme selector styles */
+#themeSelector {
+    min-width: 150px;
+    background-color: #2d2d2d;
+    color: #d4d4d4;
+    border: 1px solid #3e3e3e;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 0.9em;
+}
+
+#themeSelector:focus {
+    border-color: #00aaff;
+    box-shadow: 0 0 0 2px rgba(0, 170, 255, 0.25);
+}
