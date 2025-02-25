@@ -3,26 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Yoruba Programming Language Interpreter</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CodeMirror CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+
+<!-- CodeMirror JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/selection/active-line.min.js"></script>
 </head>
 <body>
     <h1>Yoruba Programming Language Interpreter</h1>
-    <div id="codeContainer">
-        <div id="codeWrapper">
-            <div id="highlightedCode" contenteditable="true" spellcheck="false"></div>
+    
+    <div class="toolbar">
+        <div class="control-group">
+            <select id="exampleSelector">
+                <option value="">-- Select an Example --</option>
+            </select>
+            <button id="loadExampleButton">
+                <i class="fas fa-file-import"></i> Load Example
+            </button>
+        </div>
+        <div class="control-group">
+            <button id="newFileButton">
+                <i class="fas fa-file"></i> New
+            </button>
+            <button id="saveButton">
+                <i class="fas fa-save"></i> Save
+            </button>
         </div>
     </div>
-
-    <button class = "runbutton"id="runCodeButton">Run Code</button>
-    <button class = "runbutton"id="disassembleButton">Disassemble</button>
+    
+    <div id="codeContainer">
+    </div>
+    </div>
+    
+    <div id="actionBar">
+        <button class="runbutton" id="runCodeButton">
+            <i class="fas fa-play"></i> Run Code
+        </button>
+        <button class="runbutton" id="disassembleButton">
+            <i class="fas fa-cogs"></i> Disassemble
+        </button>
+    </div>
+    
     <div id="outputContainer">
+        <div id="outputHeader">
+            <span id="outputTitle">Output</span>
+            <button id="clearOutputButton">Clear</button>
+        </div>
         <pre id="output"></pre>
     </div>
-
+    
+    <div id="statusBar">
+        <div class="status-item">
+            <i class="fas fa-check-circle"></i>
+            <span id="statusMessage">Ready</span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-code"></i>
+            <span>Yoruba</span>
+        </div>
+    </div>
+    
     <script src="ekun.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
-

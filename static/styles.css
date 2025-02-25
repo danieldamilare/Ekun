@@ -1,63 +1,82 @@
+/* Base styles */
 body {
-    background-color: #2b2b2b;
-    color: #dcdcdc;
-    font-family: Arial, sans-serif;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'Segoe UI', 'SF Pro Text', Arial, sans-serif;
     text-align: center;
     padding: 20px;
+    margin: 0;
+    line-height: 1.6;
 }
 
 h1 {
     font-size: 2em;
     margin-bottom: 20px;
+    color: #00aaff;
+    font-weight: 400;
 }
 
-#codeContainer {
+/* Toolbar styles */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 70%;
+    margin: 0 auto 15px auto;
+}
+
+.control-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Button and select styles */
+select, button {
+    background-color: #2d2d2d;
+    color: #d4d4d4;
+    border: 1px solid #3e3e3e;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 0.9em;
+    transition: all 0.2s;
+    outline: none;
+    cursor: pointer;
+}
+
+select {
+    min-width: 200px;
+}
+
+select:focus, button:focus {
+    border-color: #00aaff;
+    box-shadow: 0 0 0 2px rgba(0, 170, 255, 0.25);
+}
+
+/* CodeMirror customization */
+.CodeMirror {
+    height: 400px !important;
+    /* width: 70%; !important; */
+    /* max-width: 70%; !important; */
+    margin: 0 auto;
+    font-family: 'Cascadia Code', 'Fira Code', 'Source Code Pro', 'Consolas', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.CodeMirror pre {
+    text-align: left !important;
+}
+
+/* Action bar styles */
+#actionBar {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
+    gap: 15px;
+    margin: 20px 0;
 }
-
-#codeWrapper {
-    display: flex;
-    width: 70%;
-    height: 400px;
-    background-color: #1e1e1e;
-    border: 2px solid #00aaff;
-    border-radius: 4px;
-    overflow: hidden;
-    font-family: 'Courier New', Courier, monospace;
-}
-
-#highlightedCode {
-    text-align: left;
-    flex: 1;
-    padding: 10px;
-    color: #dcdcdc;
-    font-size: 1.0em;
-    resize: none;
-    outline: none;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    overflow-y: scroll;
-}
-
-
-.keyword {
-    background-color: red;
-    color: #ffcc00;
-    font-weight: bold;
-}
-
-
-/* #codeInput:focus { */
-/*     border-color: #ffcc00; */
-/* } */
-
-#disassembleButton {
-    position: relative;
-    margin-left: 30px;
-}
-
 
 .runbutton {
     background-color: #00aaff;
@@ -65,26 +84,110 @@ h1 {
     padding: 10px 20px;
     border: none;
     border-radius: 4px;
-    cursor: pointer;
-    font-size: 1.1em;
+    font-size: 0.95em;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .runbutton:hover {
-    background-color: #007acc;
+    background-color: #0090e0;
+    transform: translateY(-1px);
 }
+
+/* Output container styles */
 #outputContainer {
     width: 70%;
     margin: 20px auto;
-    padding: 10px;
-    background-color: #1e1e1e;
-    border: 2px solid #00aaff;
-    border-radius: 4px;
+    padding: 15px;
+    background-color: #252526;
+    border: 1px solid #3e3e3e;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#outputHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #3e3e3e;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+#outputTitle {
+    font-size: 0.9em;
+    color: #858585;
+    font-weight: 500;
 }
 
 #output {
     text-align: left;
-    color: #dcdcdc;
-    font-size: 1.0em;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+    color: #d4d4d4;
+    font-family: 'Cascadia Code', 'Fira Code', 'Source Code Pro', 'Consolas', monospace;
+    font-size: 0.8em;
+    white-space: no-wrap;
+    min-height: 100px;
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding: 10px 0;
 }
+
+/* Status bar styles */
+#statusBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 70%;
+    margin: 15px auto 0 auto;
+    padding: 8px 15px;
+    background-color: #007acc;
+    color: #fff;
+    font-size: 0.85em;
+    border-radius: 0 0 6px 6px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .CodeMirror, #outputContainer, .toolbar, #statusBar {
+        width: 85%;
+    }
+
+    #output{
+        font-size: 0.75em;
+    }
+}
+
+@media (max-width: 768px) {
+    .CodeMirror, #outputContainer, .toolbar, #statusBar {
+        width: 95%;
+    }
+    
+    .toolbar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .control-group {
+        width: 100%;
+        justify-content: center;
+    }
+
+    #output{
+        font-size: 0.65em;
+    }
+}
+
+/* Custom syntax highlighting for Yoruba */
+.cm-keyword { color: #569cd6 !important; font-weight: bold; }
+.cm-string { color: #ce9178 !important; }
+.cm-number { color: #b5cea8 !important; }
+.cm-comment { color: #6a9955 !important; font-style: italic; }
