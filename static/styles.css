@@ -126,7 +126,7 @@ select:focus, button:focus {
     text-align: left;
     color: #d4d4d4;
     font-family: 'Cascadia Code', 'Fira Code', 'Source Code Pro', 'Consolas', monospace;
-    font-size: 0.8em;
+    font-size: 0.9em;
     white-space: no-wrap;
     min-height: 100px;
     max-height: 500px;
