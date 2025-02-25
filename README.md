@@ -24,7 +24,7 @@ pe(ikinni, ["Damilare", "Daniel", "Olúṣẹ́gun"])
 ✅ **Yoruba Syntax** – Uses Yoruba-based keywords and structure for easier learning.  
 ✅ **Simple Data Types** – Supports integers, floating-point numbers, and strings.  
 ✅ **Extensibility** – Includes a Visual Studio Code extension and WebAssembly support.  
-✅ **Online IDE** – [Try it in your browser](https://danieldamilare.github.io/ekun).  
+✅ **Online IDE** – [Try it in your browser](https://danieldamilare.github.io/Ekun).  
 
 ## Building and Running  
 ### Prerequisite
@@ -48,7 +48,7 @@ make wasm
 ```  
 
 ## Getting Started  
-If you are new to the language and want to see how it works, you can try it online [here](https://danieldamilare.github.io/ekun).  
+If you are new to the language and want to see how it works, you can try it online [here](https://danieldamilare.github.io/Ekun).  
 
 To learn more about the language, read the [Specification](./docs/specification.md).  
 
