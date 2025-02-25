@@ -76,16 +76,6 @@ const yorubaKeywords = [
     { text: "iro", displayText: "iro (false)" }
 ];
 
-// Yoruba snippets for autocompletion
-const yorubaSnippets = [
-    { text: "ise(name, param)\n    \npari", displayText: "Function declaration" },
-    { text: "ti condition se\n    \npari", displayText: "If statement" },
-    { text: "ti condition se\n    \nbibeeko\n    \npari", displayText: "If-else statement" },
-    { text: "nigbati condition se\n    \npari", displayText: "While loop" },
-    { text: "fun i lati 1 de n se\n    \npari", displayText: "For loop" },
-    { text: "pe(sope, \"\")", displayText: "Print statement" }
-];
-
 // Theme options
 const themes = [
     { name: "Monokai", value: "monokai" },
@@ -128,7 +118,9 @@ function initializeEditor() {
         value: "",
         autofocus: true,
         hintOptions: {
-            hint: yorubaHint
+            hint: yorubaHint,
+            completeSingle: false,  // Don't automatically select if there's only one match
+            alignWithWord: true     // Align the popup with the word being completed
         }
     });
 
@@ -141,15 +133,44 @@ function initializeEditor() {
         document.getElementById('statusMessage').textContent = 'Modified';
         // Save to local storage
         saveToLocalStorage('draft', editor.getValue());
+        // Scan for variables on each change
+        scanForVariables(editor);
     });
     
-    // Set up autocompletion trigger
+    // Set up autocompletion trigger with improved behavior
     editor.on("keyup", function(cm, event) {
+        // Only trigger autocompletion if:
+        // 1. No completions are currently active
+        // 2. User has typed at least one character or specific punctuation
+        // 3. Not on special keys like arrows, enter, etc.
+        const specialKeys = [
+            13, // Enter
+            27, // Escape
+            37, 38, 39, 40, // Arrow keys
+            9,  // Tab
+            16, 17, 18, 91, 92 // Modifier keys (Shift, Ctrl, Alt, Win/Cmd)
+        ];
+        
         if (!cm.state.completionActive && 
-            (event.keyCode > 64 && event.keyCode < 91) || // Letters
-            (event.keyCode === 219) || // Opening bracket
-            (event.keyCode === 40)) {  // Opening parenthesis
-            CodeMirror.commands.autocomplete(cm);
+            !specialKeys.includes(event.keyCode) &&
+            ((event.keyCode >= 65 && event.keyCode <= 90) || // A-Z
+             (event.keyCode >= 97 && event.keyCode <= 122) || // a-z
+             event.keyCode === 40 || // Opening parenthesis
+             event.keyCode === 219)) { // Opening bracket
+            
+            // Get current word
+            const cursor = cm.getCursor();
+            const line = cm.getLine(cursor.line);
+            let start = cursor.ch;
+            while (start > 0 && /\w/.test(line.charAt(start - 1))) {
+                start--;
+            }
+            const currentWord = line.slice(start, cursor.ch);
+            
+            // Only trigger if at least one character has been typed
+            if (currentWord.length > 0) {
+                CodeMirror.commands.autocomplete(cm);
+            }
         }
     });
     
@@ -157,17 +178,19 @@ function initializeEditor() {
     const savedDraft = loadFromLocalStorage('draft');
     if (savedDraft) {
         editor.setValue(savedDraft);
+        // Scan for variables in the loaded content
+        scanForVariables(editor);
     }
 
     // Initialize theme selector
     initializeThemeSelector();
 }
 
-// Custom hint function for Yoruba language
+// Improved custom hint function for Yoruba language
 function yorubaHint(editor) {
     const cursor = editor.getCursor();
     const line = editor.getLine(cursor.line);
-    const start = cursor.ch;
+    let start = cursor.ch;
     let end = cursor.ch;
     
     // Find the start of the current word
@@ -178,20 +201,40 @@ function yorubaHint(editor) {
     // Get the current word
     const word = line.slice(start, end).toLowerCase();
     
-    // Filter keywords and snippets based on the current word
+    // If word is empty, don't show suggestions
+    if (!word) {
+        return {
+            list: [],
+            from: CodeMirror.Pos(cursor.line, start),
+            to: CodeMirror.Pos(cursor.line, end)
+        };
+    }
+    
+    // Rescan for variables whenever autocompletion is triggered
+    scanForVariables(editor);
+    
+    // Filter keywords based on the current word - must start with the word
     const filteredKeywords = yorubaKeywords.filter(kw => 
         kw.text.toLowerCase().startsWith(word)
     );
     
-    const filteredSnippets = yorubaSnippets.filter(snip => 
-        snip.displayText.toLowerCase().includes(word)
-    );
+    // Only include variables that exactly match the current word
+    const variableSuggestions = Array.from(declaredVariables)
+        .filter(varName => varName.toLowerCase() === word.toLowerCase()) // Only exact matches
+        .map(varName => ({ text: varName, displayText: `${varName} (variable)` }));
     
-    // Combine the results
-    const completions = [...filteredKeywords, ...filteredSnippets];
+    // Combine the results - no snippets
+    const completions = [
+        ...filteredKeywords, 
+        ...variableSuggestions
+    ];
+    
+    // Limit the number of suggestions to avoid overwhelming the user
+    const maxSuggestions = 10;
+    const limitedCompletions = completions.slice(0, maxSuggestions);
     
     return {
-        list: completions,
+        list: limitedCompletions,
         from: CodeMirror.Pos(cursor.line, start),
         to: CodeMirror.Pos(cursor.line, end)
     };
@@ -518,6 +561,64 @@ nigbati pixel1 <= 24 se
 pari`
 };
 
+// Improved variable tracking - only track actual variable declarations
+let declaredVariables = new Set(); // Track declared variables
+
+// Function to scan the editor content and extract variable names
+function scanForVariables(editor) {
+    const content = editor.getValue();
+    const lines = content.split('\n');
+    
+    // Clear existing variables to avoid duplicates
+    declaredVariables.clear();
+
+    // Look for variable declarations like "fi value si variableName"
+    const fiVariableRegex = /\bfi\b\s+.+\s+\bsi\b\s+(\w+)/g;
+    
+    // Function parameters like "ise(funcName, param1, param2)"
+    const functionParamRegex = /\bise\b\s*\(\s*(\w+)\s*,\s*([^)]+)\)/g;
+    
+    // Loop variables like "fun i lati 1 de 10 se"
+    const loopVariableRegex = /\bfun\b\s+(\w+)\s+\blati\b/g;
+    
+    lines.forEach(line => {
+        // Find "fi ... si variableName" declarations
+        let fiMatch;
+        while ((fiMatch = fiVariableRegex.exec(line)) !== null) {
+            if (fiMatch[1]) {
+                declaredVariables.add(fiMatch[1]);
+            }
+        }
+        
+        // Find function parameters
+        let funcMatch;
+        while ((funcMatch = functionParamRegex.exec(line)) !== null) {
+            if (funcMatch[2]) {
+                // Split multiple parameters
+                const params = funcMatch[2].split(',').map(p => p.trim());
+                params.forEach(param => {
+                    if (param && !yorubaKeywords.some(kw => kw.text === param)) {
+                        declaredVariables.add(param);
+                    }
+                });
+                
+                // Also add the function name as a variable
+                if (funcMatch[1] && !yorubaKeywords.some(kw => kw.text === funcMatch[1])) {
+                    declaredVariables.add(funcMatch[1]);
+                }
+            }
+        }
+        
+        // Find loop variables
+        let loopMatch;
+        while ((loopMatch = loopVariableRegex.exec(line)) !== null) {
+            if (loopMatch[1] && !yorubaKeywords.some(kw => kw.text === loopMatch[1])) {
+                declaredVariables.add(loopMatch[1]);
+            }
+        }
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
     // Initialize CodeMirror
     initializeEditor();
@@ -539,6 +640,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (selectedExample && examples[selectedExample]) {
             editor.setValue(examples[selectedExample]);
             editor.focus();
+            scanForVariables(editor);
         }
     });
     
@@ -562,22 +664,5 @@ document.addEventListener("DOMContentLoaded", function() {
     fileControlGroup.insertBefore(importButton, document.getElementById('saveButton'));
     
     // Load CodeMirror addons for autocompletion
-    loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/show-hint.min.js');
-    loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/show-hint.min.css', true);
 });
 
-// Helper function to load scripts or stylesheets
-function loadScript(src, isStylesheet = false) {
-    const element = isStylesheet 
-        ? document.createElement('link')
-        : document.createElement('script');
-        
-    if (isStylesheet) {
-        element.rel = 'stylesheet';
-        element.href = src;
-    } else {
-        element.src = src;
-    }
-    
-    document.head.appendChild(element);
-}
