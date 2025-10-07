@@ -764,14 +764,14 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    81,    81,    85,    88,    92,    94,    96,    98,   100,
-     103,   109,   110,   111,   114,   120,   124,   128,   134,   142,
-     148,   150,   156,   161,   165,   169,   173,   177,   181,   185,
-     189,   193,   197,   201,   208,   214,   218,   222,   229,   229,
-     234,   240,   241,   242,   245,   252,   257,   261,   267,   271,
-     287,   292,   297,   304,   310,   310,   318,   322,   325,   335,
-     344,   345,   344,   364,   365,   369,   377,   380,   383,   389,
-     395,   400,   405,   410,   416,   417
+       0,    81,    81,    85,    88,    91,    96,    98,   100,   102,
+     105,   111,   112,   113,   116,   122,   126,   130,   136,   144,
+     150,   152,   158,   163,   167,   171,   175,   179,   183,   187,
+     191,   195,   199,   203,   210,   216,   220,   224,   231,   231,
+     236,   242,   243,   244,   247,   254,   259,   263,   269,   273,
+     289,   294,   299,   306,   312,   312,   320,   324,   327,   337,
+     346,   347,   346,   366,   367,   371,   379,   382,   385,   391,
+     397,   402,   407,   412,   418,   419
 };
 #endif
 
@@ -846,7 +846,7 @@ static const yytype_int8 yydefact[] =
 {
       11,     0,     2,     1,     0,    74,    14,    17,    18,    15,
       16,     0,     0,    66,    58,    60,     0,     0,     0,    75,
-      66,     0,    13,     4,    20,     5,     6,     0,     7,     8,
+      66,     0,    13,     5,    20,     4,     6,     0,     7,     8,
       10,     9,    12,     3,     0,    17,     0,     0,     0,     0,
        0,     0,     0,     0,    41,    22,     0,     0,    70,    71,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
@@ -1532,41 +1532,41 @@ yyreduce:
 #line 1533 "y.tab.c"
     break;
 
-  case 4: /* stmt: expr  */
+  case 4: /* stmt: assignstmt  */
 #line 89 "ekparser.y"
-       { DEBUG_PRINT("stmt: expr"); 
-         CODEGEN(ppop);
-       }
-#line 1541 "y.tab.c"
+       { DEBUG_PRINT("stmt: assignstmt"); }
+#line 1539 "y.tab.c"
     break;
 
-  case 5: /* stmt: assignstmt  */
+  case 5: /* stmt: expr  */
 #line 93 "ekparser.y"
-       { DEBUG_PRINT("stmt: assignstmt"); }
+        { DEBUG_PRINT("stmt: expr"); 
+         CODEGEN(ppop);
+        }
 #line 1547 "y.tab.c"
     break;
 
   case 6: /* stmt: ifstmt  */
-#line 95 "ekparser.y"
+#line 97 "ekparser.y"
        { DEBUG_PRINT("stmt: ifstmt"); }
 #line 1553 "y.tab.c"
     break;
 
   case 7: /* stmt: whilestmt  */
-#line 97 "ekparser.y"
+#line 99 "ekparser.y"
        { DEBUG_PRINT("stmt: whilestmt"); }
 #line 1559 "y.tab.c"
     break;
 
   case 8: /* stmt: forstmt  */
-#line 98 "ekparser.y"
+#line 100 "ekparser.y"
                  {
         DEBUG_PRINT("stmt: forstmt");}
 #line 1566 "y.tab.c"
     break;
 
   case 9: /* stmt: funcstmt  */
-#line 100 "ekparser.y"
+#line 102 "ekparser.y"
                   {
          DEBUG_PRINT("stmt: funcstmt");
        }
@@ -1574,7 +1574,7 @@ yyreduce:
     break;
 
   case 10: /* stmt: returnstmt  */
-#line 103 "ekparser.y"
+#line 105 "ekparser.y"
                     {
          DEBUG_PRINT("stmt: returnstmt");
        }
@@ -1582,19 +1582,19 @@ yyreduce:
     break;
 
   case 11: /* stmtlist: %empty  */
-#line 109 "ekparser.y"
+#line 111 "ekparser.y"
                       { (yyval.ptr) =  code_get_count(&vm.instructions);}
 #line 1588 "y.tab.c"
     break;
 
   case 13: /* stmtlist: stmtlist stmt  */
-#line 111 "ekparser.y"
+#line 113 "ekparser.y"
                         { DEBUG_PRINT("stmtlist: stmlist stmt"); }
 #line 1594 "y.tab.c"
     break;
 
   case 14: /* expr: NOOMBA  */
-#line 115 "ekparser.y"
+#line 117 "ekparser.y"
         { DEBUG_PRINT("expr: NUMBER"); 
           double num = check_err(strtod((yyvsp[0].tok).start, NULL));
           void * data = write_constant(CREATE_NUM(num));
@@ -1604,7 +1604,7 @@ yyreduce:
     break;
 
   case 15: /* expr: OOTO  */
-#line 121 "ekparser.y"
+#line 123 "ekparser.y"
           { DEBUG_PRINT("expr: OOTO");
             (yyval.ptr) = CODEGEN(ooto);
           }
@@ -1612,7 +1612,7 @@ yyreduce:
     break;
 
   case 16: /* expr: IRO  */
-#line 125 "ekparser.y"
+#line 127 "ekparser.y"
           { DEBUG_PRINT("expr: IRO");
             (yyval.ptr) = CODEGEN(iro);
           }
@@ -1620,7 +1620,7 @@ yyreduce:
     break;
 
   case 17: /* expr: IDENT  */
-#line 128 "ekparser.y"
+#line 130 "ekparser.y"
                 {
             
             DEBUG_PRINT("expr: IDENT");
@@ -1630,7 +1630,7 @@ yyreduce:
     break;
 
   case 18: /* expr: ORO  */
-#line 135 "ekparser.y"
+#line 137 "ekparser.y"
          {
             DEBUG_PRINT("expr: ORO");
             Objstring * string = make_string((yyvsp[0].tok).start+1, (yyvsp[0].tok).length - 2);
@@ -1641,7 +1641,7 @@ yyreduce:
     break;
 
   case 19: /* expr: LBRACKET loopatch arglist RBRACKET  */
-#line 143 "ekparser.y"
+#line 145 "ekparser.y"
         {
             (yyval.ptr) = (yyvsp[-2].ptr);
             CODEGEN2(build_array, (void *)(intptr_t)(yyvsp[-1].args));
@@ -1650,7 +1650,7 @@ yyreduce:
     break;
 
   case 21: /* expr: expr LBRACKET expr RBRACKET  */
-#line 151 "ekparser.y"
+#line 153 "ekparser.y"
         {
            
            CODEGEN(index_push);
@@ -1659,7 +1659,7 @@ yyreduce:
     break;
 
   case 22: /* expr: MINUS expr  */
-#line 157 "ekparser.y"
+#line 159 "ekparser.y"
         { DEBUG_PRINT("expr: MINUS expr");
           CODEGEN(neg);
           (yyval.ptr) = (yyvsp[0].ptr);
@@ -1668,7 +1668,7 @@ yyreduce:
     break;
 
   case 23: /* expr: expr PLUS expr  */
-#line 162 "ekparser.y"
+#line 164 "ekparser.y"
         { DEBUG_PRINT("expr: expr + expr");
           CODEGEN(add);
         }
@@ -1676,7 +1676,7 @@ yyreduce:
     break;
 
   case 24: /* expr: expr GTEQ expr  */
-#line 166 "ekparser.y"
+#line 168 "ekparser.y"
         { DEBUG_PRINT("expr: expr >= expr");
           CODEGEN(ge);
         }
@@ -1684,7 +1684,7 @@ yyreduce:
     break;
 
   case 25: /* expr: expr GT expr  */
-#line 170 "ekparser.y"
+#line 172 "ekparser.y"
         { DEBUG_PRINT("expr: expr > expr");
           CODEGEN(gt);
         }
@@ -1692,7 +1692,7 @@ yyreduce:
     break;
 
   case 26: /* expr: expr LT expr  */
-#line 174 "ekparser.y"
+#line 176 "ekparser.y"
         { DEBUG_PRINT("expr: expr < expr");
           CODEGEN(lt);
         }
@@ -1700,7 +1700,7 @@ yyreduce:
     break;
 
   case 27: /* expr: expr EQEQ expr  */
-#line 178 "ekparser.y"
+#line 180 "ekparser.y"
         { DEBUG_PRINT("expr: expr == expr");
           CODEGEN(eq);
         }
@@ -1708,7 +1708,7 @@ yyreduce:
     break;
 
   case 28: /* expr: expr DOGBA expr  */
-#line 182 "ekparser.y"
+#line 184 "ekparser.y"
           { DEBUG_PRINT("expr: expr DOGBA expr ");
             CODEGEN(eq);
           }
@@ -1716,7 +1716,7 @@ yyreduce:
     break;
 
   case 29: /* expr: expr LTEQ expr  */
-#line 186 "ekparser.y"
+#line 188 "ekparser.y"
         { DEBUG_PRINT("expr: expr <= expr");
           CODEGEN(le);
         }
@@ -1724,7 +1724,7 @@ yyreduce:
     break;
 
   case 30: /* expr: expr MINUS expr  */
-#line 190 "ekparser.y"
+#line 192 "ekparser.y"
         { DEBUG_PRINT("expr: expr - expr"); 
           CODEGEN(sub);
         }
@@ -1732,7 +1732,7 @@ yyreduce:
     break;
 
   case 31: /* expr: expr ASTERISK expr  */
-#line 194 "ekparser.y"
+#line 196 "ekparser.y"
         { DEBUG_PRINT("expr: expr * expr"); 
           CODEGEN(mul);
         }
@@ -1740,7 +1740,7 @@ yyreduce:
     break;
 
   case 32: /* expr: expr SLASH expr  */
-#line 198 "ekparser.y"
+#line 200 "ekparser.y"
         { DEBUG_PRINT("expr: expr / expr"); 
           CODEGEN(divide);
         }
@@ -1748,7 +1748,7 @@ yyreduce:
     break;
 
   case 33: /* expr: expr ATI andpatch expr  */
-#line 201 "ekparser.y"
+#line 203 "ekparser.y"
                                  {
             /* if expr is true jump to evaluate next expr */
             vm.instructions.data[(yyvsp[-1].ptr)+1] = (void *) (yyvsp[0].ptr);
@@ -1760,7 +1760,7 @@ yyreduce:
     break;
 
   case 34: /* expr: expr TABI orpatch expr  */
-#line 208 "ekparser.y"
+#line 210 "ekparser.y"
                                  {
             /* patch if expr is true jump to the end of the rule */
             vm.instructions.data[(yyvsp[-1].ptr)+1] = (void *) code_get_count(&vm.instructions);
@@ -1771,7 +1771,7 @@ yyreduce:
     break;
 
   case 35: /* expr: expr CARET expr  */
-#line 215 "ekparser.y"
+#line 217 "ekparser.y"
         { DEBUG_PRINT("expr: expr ^ expr"); 
           CODEGEN(power);
         }
@@ -1779,7 +1779,7 @@ yyreduce:
     break;
 
   case 36: /* expr: expr MODULUS expr  */
-#line 218 "ekparser.y"
+#line 220 "ekparser.y"
                             { 
         DEBUG_PRINT("expr: expr %% expr"); 
         CODEGEN(mod);
@@ -1788,7 +1788,7 @@ yyreduce:
     break;
 
   case 37: /* expr: LPAR expr RPAR  */
-#line 223 "ekparser.y"
+#line 225 "ekparser.y"
         { DEBUG_PRINT("expr: (expr)"); 
           (yyval.ptr) = (yyvsp[-1].ptr);
          }
@@ -1796,13 +1796,13 @@ yyreduce:
     break;
 
   case 38: /* $@1: %empty  */
-#line 229 "ekparser.y"
+#line 231 "ekparser.y"
                                   {gen_var((yyvsp[-1].tok).start, (yyvsp[-1].tok).length, PUSH); }
 #line 1802 "y.tab.c"
     break;
 
   case 39: /* funccall: PE LPAR IDENT loopatch $@1 COMMA arglist RPAR  */
-#line 230 "ekparser.y"
+#line 232 "ekparser.y"
          {
              CODEGEN2(call, (void *) ((intptr_t) (yyvsp[-1].args))); 
              (yyval.ptr) = (yyvsp[-4].ptr);
@@ -1811,7 +1811,7 @@ yyreduce:
     break;
 
   case 40: /* funccall: PE LPAR IDENT RPAR  */
-#line 234 "ekparser.y"
+#line 236 "ekparser.y"
                               {
             (yyval.ptr) = gen_var((yyvsp[-1].tok).start, (yyvsp[-1].tok).length, PUSH); 
             CODEGEN2(call, (void *) ((intptr_t) 0));
@@ -1820,25 +1820,25 @@ yyreduce:
     break;
 
   case 41: /* arglist: %empty  */
-#line 240 "ekparser.y"
+#line 242 "ekparser.y"
                        { (yyval.args) = 0; }
 #line 1826 "y.tab.c"
     break;
 
   case 42: /* arglist: expr  */
-#line 241 "ekparser.y"
+#line 243 "ekparser.y"
                 {(yyval.args) = 1; }
 #line 1832 "y.tab.c"
     break;
 
   case 43: /* arglist: expr COMMA arglist  */
-#line 242 "ekparser.y"
+#line 244 "ekparser.y"
                               {(yyval.args) = (yyvsp[0].args) + 1; }
 #line 1838 "y.tab.c"
     break;
 
   case 44: /* assignstmt: IDENT EQ expr  */
-#line 246 "ekparser.y"
+#line 248 "ekparser.y"
           {
              DEBUG_PRINT("assignstmt:\
              IDENT EQ expr");
@@ -1849,7 +1849,7 @@ yyreduce:
     break;
 
   case 45: /* assignstmt: FI expr SI IDENT  */
-#line 253 "ekparser.y"
+#line 255 "ekparser.y"
            {
              (yyval.ptr) = (yyvsp[-2].ptr);
              gen_var((yyvsp[0].tok).start, (yyvsp[0].tok).length, STORE);
@@ -1858,7 +1858,7 @@ yyreduce:
     break;
 
   case 46: /* assignstmt: expr LBRACKET expr RBRACKET EQ expr  */
-#line 258 "ekparser.y"
+#line 260 "ekparser.y"
            {
                CODEGEN(index_store_1);
            }
@@ -1866,7 +1866,7 @@ yyreduce:
     break;
 
   case 47: /* assignstmt: FI expr SI expr LBRACKET expr RBRACKET  */
-#line 261 "ekparser.y"
+#line 263 "ekparser.y"
                                                    {
                 CODEGEN(index_store_2);
                 (yyval.ptr) = (yyvsp[-5].ptr);
@@ -1875,13 +1875,13 @@ yyreduce:
     break;
 
   case 48: /* ifstmt: ifblk PARI  */
-#line 267 "ekparser.y"
+#line 269 "ekparser.y"
                     {DEBUG_PRINT("ifstmt: ifblk PARI");}
 #line 1881 "y.tab.c"
     break;
 
   case 49: /* ifblk: TI expr SE ifpatch stmtlist elsepatch elsestmt  */
-#line 271 "ekparser.y"
+#line 273 "ekparser.y"
                                                       {
 
       DEBUG_PRINT("ifblk: TI expr \
@@ -1900,7 +1900,7 @@ yyreduce:
     break;
 
   case 50: /* elsestmt: %empty  */
-#line 287 "ekparser.y"
+#line 289 "ekparser.y"
                        {
          DEBUG_PRINT("elsestmt: /*nothing*/");
          (yyval.ptr) =  code_get_count(&vm.instructions); 
@@ -1910,7 +1910,7 @@ yyreduce:
     break;
 
   case 51: /* elsestmt: BIBEEKO ifblk  */
-#line 292 "ekparser.y"
+#line 294 "ekparser.y"
                          { /* else if */
          DEBUG_PRINT("elsestmt: BIBEEKO ifblk");
          (yyval.ptr) = (yyvsp[0].ptr);
@@ -1920,7 +1920,7 @@ yyreduce:
     break;
 
   case 52: /* elsestmt: BIBEEKO stmtlist  */
-#line 297 "ekparser.y"
+#line 299 "ekparser.y"
                             {
          DEBUG_PRINT("elsestmt: BIBEEKO SE stmtlist");
          (yyval.ptr) = (yyvsp[0].ptr);
@@ -1930,7 +1930,7 @@ yyreduce:
     break;
 
   case 53: /* whilestmt: NIGBATI loopatch expr loopatch2 SE stmtlist PARI  */
-#line 304 "ekparser.y"
+#line 306 "ekparser.y"
                                                             {
          CODEGEN2(jmp, (void *) (yyvsp[-5].ptr));
          vm.instructions.data[(yyvsp[-3].ptr)+1] = (void *) code_get_count(&vm.instructions);
@@ -1940,14 +1940,14 @@ yyreduce:
     break;
 
   case 54: /* $@2: %empty  */
-#line 310 "ekparser.y"
+#line 312 "ekparser.y"
                                                               {
         gen_var((yyvsp[-7].tok).start, (yyvsp[-7].tok).length, STORE); }
 #line 1947 "y.tab.c"
     break;
 
   case 55: /* forstmt: FUN IDENT LATI expr DE expr ifikun loopatch forpatch $@2 SE stmtlist PARI  */
-#line 311 "ekparser.y"
+#line 313 "ekparser.y"
                                                                 {
         CODEGEN2(jmp, (void *) (yyvsp[-5].ptr));
         vm.instructions.data[(yyvsp[-5].ptr)+1] = 
@@ -1957,7 +1957,7 @@ yyreduce:
     break;
 
   case 56: /* ifikun: %empty  */
-#line 318 "ekparser.y"
+#line 320 "ekparser.y"
                     { 
       void * data = write_constant(CREATE_NUM(1));
       (yyval.ptr) = CODEGEN2(constpush, data);
@@ -1966,13 +1966,13 @@ yyreduce:
     break;
 
   case 57: /* ifikun: IFIKUN expr  */
-#line 322 "ekparser.y"
+#line 324 "ekparser.y"
                      {(yyval.ptr) = (yyvsp[0].ptr);}
 #line 1972 "y.tab.c"
     break;
 
   case 58: /* returnstmt: PADA  */
-#line 325 "ekparser.y"
+#line 327 "ekparser.y"
                  {
             if(!IN_SCOPE()){
                 EK_ERROR(ek_state.line_no, 
@@ -1987,7 +1987,7 @@ yyreduce:
     break;
 
   case 59: /* returnstmt: PADA COLON expr  */
-#line 335 "ekparser.y"
+#line 337 "ekparser.y"
                             { 
                 if(!IN_SCOPE()){
                  EK_ERROR(ek_state.line_no, 
@@ -1999,13 +1999,13 @@ yyreduce:
     break;
 
   case 60: /* $@3: %empty  */
-#line 344 "ekparser.y"
+#line 346 "ekparser.y"
               { begin_scope(); DEBUG_PRINT("matching ise"); }
 #line 2005 "y.tab.c"
     break;
 
   case 61: /* $@4: %empty  */
-#line 345 "ekparser.y"
+#line 347 "ekparser.y"
                                     { 
           /* this hack allows function to be define in its real scope 
            * since function is bound to an outer scoe */
@@ -2015,7 +2015,7 @@ yyreduce:
     break;
 
   case 62: /* funcstmt: ISE $@3 LPAR IDENT paramlist RPAR $@4 funcpatch stmtlist PARI  */
-#line 350 "ekparser.y"
+#line 352 "ekparser.y"
                        {
             DEBUG_PRINT("funcstmt: ISE IDENT \
             LPAR paramlist RPAR stmt PARI");
@@ -2032,13 +2032,13 @@ yyreduce:
     break;
 
   case 63: /* paramlist: %empty  */
-#line 364 "ekparser.y"
+#line 366 "ekparser.y"
                         {(yyval.args) = 0;}
 #line 2038 "y.tab.c"
     break;
 
   case 64: /* paramlist: COMMA IDENT  */
-#line 365 "ekparser.y"
+#line 367 "ekparser.y"
                        {
             Objstring * name = make_string((yyvsp[0].tok).start, (yyvsp[0].tok).length);
             add_local(name);
@@ -2047,7 +2047,7 @@ yyreduce:
     break;
 
   case 65: /* paramlist: paramlist COMMA IDENT  */
-#line 369 "ekparser.y"
+#line 371 "ekparser.y"
                                   { 
             Objstring * name = make_string((yyvsp[0].tok).start, (yyvsp[0].tok).length);
             add_local(name);
@@ -2056,19 +2056,19 @@ yyreduce:
     break;
 
   case 66: /* loopatch: %empty  */
-#line 377 "ekparser.y"
+#line 379 "ekparser.y"
                         { (yyval.ptr) = code_get_count(&vm.instructions); }
 #line 2062 "y.tab.c"
     break;
 
   case 67: /* funcpatch: %empty  */
-#line 380 "ekparser.y"
+#line 382 "ekparser.y"
             { (yyval.ptr) = CODEGEN2(jmp, NULL); }
 #line 2068 "y.tab.c"
     break;
 
   case 68: /* loopatch2: %empty  */
-#line 383 "ekparser.y"
+#line 385 "ekparser.y"
                         {
           (yyval.ptr) = CODEGEN2(jz, NULL);
           CODEGEN(ppop);
@@ -2077,7 +2077,7 @@ yyreduce:
     break;
 
   case 69: /* ifpatch: %empty  */
-#line 389 "ekparser.y"
+#line 391 "ekparser.y"
                        {
          DEBUG_PRINT("in if patch");
          (yyval.ptr) =CODEGEN2(jz, NULL); 
@@ -2086,7 +2086,7 @@ yyreduce:
     break;
 
   case 70: /* orpatch: %empty  */
-#line 395 "ekparser.y"
+#line 397 "ekparser.y"
                       {
          (yyval.ptr) = CODEGEN3(orjmp, NULL, NULL);
          }
@@ -2094,7 +2094,7 @@ yyreduce:
     break;
 
   case 71: /* andpatch: %empty  */
-#line 400 "ekparser.y"
+#line 402 "ekparser.y"
                        {
          (yyval.ptr) = CODEGEN3(andjmp, NULL, NULL);
           }
@@ -2102,7 +2102,7 @@ yyreduce:
     break;
 
   case 72: /* forpatch: %empty  */
-#line 405 "ekparser.y"
+#line 407 "ekparser.y"
                       {
         (yyval.ptr) =CODEGEN2(forloop, NULL);
         }
@@ -2110,7 +2110,7 @@ yyreduce:
     break;
 
   case 73: /* elsepatch: %empty  */
-#line 410 "ekparser.y"
+#line 412 "ekparser.y"
                        {
          DEBUG_PRINT("in elsepatch");
          (yyval.ptr) = CODEGEN2(jmp, NULL); 
@@ -2312,7 +2312,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 420 "ekparser.y"
+#line 422 "ekparser.y"
 
 
 static long int gen_var(const char * str, int length, enum opt option){

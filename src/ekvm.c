@@ -162,6 +162,7 @@ static void free_objects(void){
                     EK_FREE(array->valuearray);
                     EK_FREE(array);
                 }
+                break;
             default:
                 free(obj);
         }
